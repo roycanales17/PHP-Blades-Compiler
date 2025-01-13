@@ -12,9 +12,9 @@
 	}, true);
 
 
-	Blade::directive('extends', function ($expression, $content) {
+	Blade::directive('extends', function ($expression) {
 		if (!trim($expression))
-			return $content;
+			return "";
 
 		$component = "";
 		$path = getcwd(). '/'. str_replace(["'", '"', "(", ")"], "", $expression);
