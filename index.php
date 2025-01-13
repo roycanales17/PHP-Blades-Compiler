@@ -18,5 +18,5 @@
 		}
 	});
 
-	// Compile the content
-	eval("?>". Blade::compile(file_get_contents('tests/home.php')));
+	// Render the content
+	Blade::render('tests/home.php');

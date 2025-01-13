@@ -26,4 +26,16 @@
 
 			return $compiler->getTemplate();
 		}
+
+		public static function render(string $path, array $directives = []): void
+		{
+			if (file_exists($path)) {
+
+				$compiler = new Compile(file_get_contents($path), $directives);
+				$compiler->importDirectives();
+				$compiler->startCompile();
+
+				eval("?>". $compiler->getTemplate());
+			}
+		}
 	}
