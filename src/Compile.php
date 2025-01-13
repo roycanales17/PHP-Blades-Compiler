@@ -13,6 +13,8 @@
 			'/directives/Tags.php',
 			'/directives/Loops.php',
 			'/directives/Template.php',
+			'/directives/Conditional.php',
+			'/directives/Variables.php'
 		];
 
 		function __construct(string $template, array $directives)
