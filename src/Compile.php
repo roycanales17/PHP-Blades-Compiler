@@ -103,7 +103,7 @@
 		private function compileTemplate(string $directive, $callback, int $params, bool $replace): void
 		{
 			if ($params)
-				$pattern = '/@' . preg_quote($directive, '/') . '\s*\((.*)\)/';
+				$pattern = '/@' . preg_quote($directive, '/') . '\s*\(([^)]*)\)/';
 			else
 				$pattern = '/@' . preg_quote($directive, '/') . '/';
 
