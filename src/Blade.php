@@ -21,6 +21,7 @@
 		public static function compile(string $template, array $directives = []): string
 		{
 			$compiler = new Compile($template, $directives);
+			$compiler->importMainDirectory(dirname(getcwd()));
 			$compiler->importDirectives();
 			$compiler->startCompile();
 

@@ -9,6 +9,7 @@
 		private string $content;
 		private array $blades = [];
 		private array $tags = [];
+		private string $root = '';
 		private array $directives = [
 			'/directives/Tags.php',
 			'/directives/Loops.php',
@@ -40,6 +41,12 @@
 			});
 
 			$this->tags = $tags;
+			return $this;
+		}
+
+		public function importMainDirectory(string $root): self
+		{
+			$this->root = $root;
 			return $this;
 		}
 
