@@ -30,7 +30,7 @@
 
 		public static function render(string $path, array $directives = []): void
 		{
-			if (file_exists($path)) {
+			if (file_exists($path = dirname(getcwd()).'/'.$path)) {
 				$content = file_get_contents($path);
 				eval("?>". self::compile($content, $directives));
 			}
