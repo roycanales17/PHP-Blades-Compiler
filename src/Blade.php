@@ -30,7 +30,7 @@
 
 		public static function render(string $path, array $directives = [], array $extract = []): void
 		{
-			if (file_exists($path = dirname(getcwd()).'/'.$path)) {
+			if (file_exists($path = self::getProjectRootPath().'/'.$path)) {
 				$content = file_get_contents($path);
 				extract($extract);
 
@@ -42,5 +42,15 @@
 		public static function eval(string $script): void
 		{
 			eval("?>$script");
+		}
+
+		public static function getProjectRootPath(): string
+		{
+			$vendorPos = strpos(__DIR__, 'vendor');
+			if ($vendorPos !== false) {
+				return substr(__DIR__, 0, $vendorPos);
+			}
+
+			return dirname(__DIR__);
 		}
 	}

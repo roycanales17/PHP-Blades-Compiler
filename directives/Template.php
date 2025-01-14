@@ -7,7 +7,7 @@
 			return $content;
 
 		$content = str_replace("@template($expression)", '', $content);
-		$template = file_get_contents(getcwd(). '/' .str_replace(["'", '"', "(", ")"], "", $expression));
+		$template = file_get_contents(Blade::getProjectRootPath(). '/' .str_replace(["'", '"', "(", ")"], "", $expression));
 		return str_replace("@pageContent", $content, $template);
 	}, true);
 
@@ -17,7 +17,7 @@
 			return "";
 
 		$component = "";
-		$path = getcwd(). '/'. str_replace(["'", '"', "(", ")"], "", $expression);
+		$path = Blade::getProjectRootPath(). '/'. str_replace(["'", '"', "(", ")"], "", $expression);
 
 		if (file_exists($path))
 			$component = file_get_contents($path);
