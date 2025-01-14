@@ -35,7 +35,12 @@
 				extract($extract);
 
 				# Compile
-				eval("?>". self::compile($content, $directives));
+				self::eval(self::compile($content, $directives));
 			}
+		}
+
+		public static function eval(string $script): void
+		{
+			eval("?>$script");
 		}
 	}
