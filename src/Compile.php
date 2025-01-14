@@ -10,7 +10,8 @@
 		private array $blades = [];
 		private array $tags = [];
 		private string $root = '';
-		private array $directives = [
+		private array $directives;
+		private array $defaultDirectives = [
 			'/directives/Tags.php',
 			'/directives/Loops.php',
 			'/directives/Template.php',
@@ -21,7 +22,7 @@
 		function __construct(string $template, array $directives)
 		{
 			$this->content = $template;
-			$this->directives = array_merge($this->directives, $directives);
+			$this->directives = $directives;
 		}
 
 		protected function registerDirectives(array $blades): self
@@ -52,12 +53,12 @@
 
 		public function importDirectives(): void
 		{
-			$baseDir = str_contains(__DIR__, '/vendor/')
-				? dirname(__DIR__)
-				: getcwd();
+			foreach ($this->defaultDirectives as $directive) {
+				require_once dirname(__DIR__) . $directive;
+			}
 
 			foreach ($this->directives as $directive) {
-				require_once $baseDir.'/'.ltrim($directive, '/');
+				require_once $this->root.'/'.ltrim($directive, '/');
 			}
 
 			$this->registerTags(Blade::getAllTags());
