@@ -28,10 +28,13 @@
 			return $compiler->getTemplate();
 		}
 
-		public static function render(string $path, array $directives = []): void
+		public static function render(string $path, array $directives = [], array $extract = []): void
 		{
 			if (file_exists($path = dirname(getcwd()).'/'.$path)) {
 				$content = file_get_contents($path);
+				extract($extract);
+
+				# Compile
 				eval("?>". self::compile($content, $directives));
 			}
 		}
