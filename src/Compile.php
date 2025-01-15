@@ -91,7 +91,11 @@
 
 		private function compileTags(string $prefix, string $suffix, callable $template): void
 		{
-			$pattern = '/(?<!' . preg_quote($prefix, '/') . ')' . preg_quote($prefix, '/') . '\s*(.*?)\s*' . preg_quote($suffix, '/') . '(?!' . preg_quote($suffix, '/') . ')/';
+			$pattern = '/(?<!' . preg_quote($prefix, '/') . ')' .
+				preg_quote($prefix, '/') .
+				'\s*(.*?)\s*' .
+				preg_quote($suffix, '/') .
+				'(?!' . preg_quote($suffix, '/') . ')/s';
 
 			$this->content = preg_replace_callback($pattern, function ($matches) use ($template) {
 				$expression = $matches[1];
