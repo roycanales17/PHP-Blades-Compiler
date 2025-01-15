@@ -6,8 +6,13 @@
 		if (!trim($expression))
 			return $content;
 
+		$path = Blade::getProjectRootPath(). '/' .str_replace(["'", '"', "(", ")"], "", $expression);
+
+		if (!file_exists($path))
+			return $content;
+
 		$content = str_replace("@template($expression)", '', $content);
-		$template = file_get_contents(Blade::getProjectRootPath(). '/' .str_replace(["'", '"', "(", ")"], "", $expression));
+		$template = file_get_contents($path);
 		return str_replace("@pageContent", $content, $template);
 	}, true);
 
