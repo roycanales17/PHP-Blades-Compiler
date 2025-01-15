@@ -31,16 +31,18 @@
 		public static function render(string $path, array $directives = [], array $extract = []): void
 		{
 			if (file_exists($path = self::getProjectRootPath().'/'.$path)) {
+
+				# Fetch the content
 				$content = file_get_contents($path);
-				extract($extract);
 
 				# Compile
-				self::eval(self::compile($content, $directives));
+				self::eval(self::compile($content, $directives), $extract);
 			}
 		}
 
-		public static function eval(string $script): void
+		public static function eval(string $script, array $extract = []): void
 		{
+			extract($extract);
 			eval("?>$script");
 		}
 
