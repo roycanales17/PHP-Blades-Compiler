@@ -3,9 +3,13 @@
 	namespace App\Content;
 
 	use Closure;
+	use Exception;
+	use Throwable;
 
 	class Blade
 	{
+		private static string $path = '';
+
 		use Properties;
 
 		public static function directive(string $directive, Closure $callback, bool $replaceContent = false): void
@@ -30,6 +34,9 @@
 
 		public static function render(string $path, array $directives = [], array $extract = []): void
 		{
+			# In case if it will throw an error
+			self::$path = $path;
+
 			if (file_exists($path = self::getProjectRootPath().'/'.$path)) {
 
 				# Fetch the content
@@ -40,10 +47,25 @@
 			}
 		}
 
-		public static function eval(string $script, array $extract = []): void
+		public static function eval(string $script, array $data = []): void
 		{
-			extract($extract);
-			eval("?>$script");
+			$tempFile = tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
+			file_put_contents($tempFile, $script);
+
+			try {
+				(static function () use ($tempFile, $data) {
+					extract($data, EXTR_SKIP);
+					include $tempFile;
+				})();
+			} catch (Throwable $e) {
+				throw new Exception(
+					str_replace($tempFile, self::$path, $e->getMessage()),
+					(int) $e->getCode(),
+					$e
+				);
+			} finally {
+				unlink($tempFile);
+			}
 		}
 
 		public static function getProjectRootPath(): string
