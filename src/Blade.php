@@ -4,7 +4,6 @@
 
 	use Closure;
 	use Exception;
-	use Throwable;
 
 	class Blade
 	{
@@ -57,7 +56,7 @@
 					extract($data, EXTR_SKIP);
 					include $tempFile;
 				})();
-			} catch (Throwable $e) {
+			} catch (Exception $e) {
 				throw new Exception(
 					str_replace($tempFile, self::$path, $e->getMessage()),
 					(int) $e->getCode(),
