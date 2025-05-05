@@ -61,6 +61,7 @@
 				if (is_callable($onError)) {
 					$onError([
 						'message' => $e->getMessage(),
+						'line' => $e->getLine(),
 						'path' => self::$path ?: $tempFile,
 						'code' => (int) $e->getCode(),
 						'content' => $script
