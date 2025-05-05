@@ -32,7 +32,7 @@
 			return $compiler->getTemplate();
 		}
 
-		public static function render(string $path, array $directives = [], array $extract = []): void
+		public static function render(string $path, array $directives = [], array $extract = [], object|null $onError = null): void
 		{
 			# In case if it will throw an error
 			self::$path = $path;
@@ -43,11 +43,11 @@
 				$content = file_get_contents($path);
 
 				# Compile
-				self::eval(self::compile($content, $directives), $extract);
+				self::eval(self::compile($content, $directives), $extract, $onError);
 			}
 		}
 
-		public static function eval(string $script, array $data = []): void
+		public static function eval(string $script, array $data = [], object|null $onError = null): void
 		{
 			$tempFile = tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
 			file_put_contents($tempFile, $script);
@@ -58,11 +58,14 @@
 					include $tempFile;
 				})();
 			} catch (Exception|Error $e) {
-				throw new Exception(
-					str_replace($tempFile, self::$path, $e->getMessage()),
-					(int) $e->getCode(),
-					$e
-				);
+				if (is_callable($onError)) {
+					$onError([
+						'message' => $e->getMessage(),
+						'path' => self::$path ?: $tempFile,
+						'code' => (int) $e->getCode(),
+						'content' => $script
+					]);
+				}
 			} finally {
 				unlink($tempFile);
 			}
