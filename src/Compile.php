@@ -12,6 +12,7 @@
 		private string $root = '';
 		private array $directives;
 		private array $protectedRanges = [];
+		private array $expressionCache = [];
 		private array $defaultDirectives = [
 			'/directives/Tags.php',
 			'/directives/Loops.php',
@@ -86,8 +87,15 @@
 
 		private function isRequireExpressions($closure): int
 		{
+			if (isset($this->expressionCache[spl_object_hash($closure)])) {
+				return $this->expressionCache[spl_object_hash($closure)];
+			}
+
 			$reflection = new ReflectionFunction($closure);
-			return $reflection->getNumberOfParameters();
+			$count = $reflection->getNumberOfParameters();
+			$this->expressionCache[spl_object_hash($closure)] = $count;
+
+			return $count;
 		}
 
 		private function isInsideProtectedRange(int $start, int $end): bool
