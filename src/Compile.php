@@ -49,7 +49,7 @@
 
 		public function importMainDirectory(string $root): self
 		{
-			$this->root = $root;
+			$this->root = rtrim($root, DIRECTORY_SEPARATOR);
 			return $this;
 		}
 
@@ -60,7 +60,8 @@
 			}
 
 			foreach ($this->directives as $directive) {
-				require_once $this->root.'/'.ltrim($directive, '/');
+				$path = $this->root . DIRECTORY_SEPARATOR . ltrim($directive, '/\\');
+				require_once $path;
 			}
 
 			$this->registerTags(Blade::getAllTags());
