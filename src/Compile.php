@@ -99,33 +99,47 @@
 			return $count;
 		}
 
-		private function isInsideProtectedRange(int $start, int $end): bool
-		{
-			foreach ($this->protectedRanges as [$rangeStart, $rangeEnd]) {
-				if ($start >= $rangeStart && $end <= $rangeEnd) {
-					return true;
-				}
-			}
-			return false;
-		}
-
 		private function compileTags(string $prefix, string $suffix, callable $template): void
 		{
 			$pattern = '/' . preg_quote($prefix, '/') . '\s*(.*?)\s*' . preg_quote($suffix, '/') . '/s';
-			$this->content = preg_replace_callback($pattern, function ($matches) use ($template, $prefix, $suffix) {
+
+			$offset = 0;
+			$this->protectedRanges = [];
+
+			$this->content = preg_replace_callback($pattern, function ($matches) use ($template, &$offset) {
 				$fullMatch = $matches[0];
 				$expression = $matches[1];
 
-				$start = strpos($this->content, $fullMatch);
+				$start = strpos($this->content, $fullMatch, $offset);
+				if ($start === false) {
+					return $fullMatch;
+				}
+
 				$end = $start + strlen($fullMatch);
+				$offset = $end;
 
 				if ($this->isInsideProtectedRange($start, $end)) {
 					return $fullMatch;
 				}
 
 				$this->protectedRanges[] = [$start, $end];
+
 				return $template($expression);
 			}, $this->content);
+		}
+
+		private function isInsideProtectedRange(int $start, int $end): bool
+		{
+			foreach ($this->protectedRanges as [$rangeStart, $rangeEnd]) {
+				if (
+					($start >= $rangeStart && $start < $rangeEnd) ||
+					($end > $rangeStart && $end <= $rangeEnd) ||
+					($start <= $rangeStart && $end >= $rangeEnd)
+				) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private function compileTemplate(string $directive, $callback, int $params, bool $replace): void
