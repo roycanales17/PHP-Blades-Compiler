@@ -3,6 +3,7 @@
 	namespace App\Content;
 
 	use Closure;
+	use Error;
 	use Exception;
 
 	class Blade
@@ -56,7 +57,7 @@
 					extract($data, EXTR_SKIP);
 					include $tempFile;
 				})();
-			} catch (Exception $e) {
+			} catch (Exception|Error $e) {
 				throw new Exception(
 					str_replace($tempFile, self::$path, $e->getMessage()),
 					(int) $e->getCode(),
