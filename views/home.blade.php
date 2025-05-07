@@ -1,6 +1,6 @@
 
-@template('tests/template.php')
-@extends('tests/navbar.php')
+@template('template')
+@extends('navbar')
 
 <h1>{{ 'Hello World!' }}</h1>
 <p>This is a testing content!</p>
@@ -11,4 +11,4 @@
 @endforeach
 </ul>
 
-@extends('tests/footer.php')
+@extends('footer')
