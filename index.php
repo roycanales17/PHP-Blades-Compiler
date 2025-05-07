@@ -19,4 +19,4 @@
 	});
 
 	// Render the content
-	Blade::render('tests/home.php');
+	Blade::render('views/home.blade.php');
