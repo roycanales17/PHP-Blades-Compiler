@@ -3,29 +3,60 @@
 	use App\Content\Blade;
 
 	Blade::directive('template', function ($expression, $content) {
-		if (!trim($expression))
+		if ($expression === '')
 			return $content;
 
-		$path = Blade::getProjectRootPath(). '/' .str_replace(["'", '"', "(", ")"], "", $expression);
+		$templatePath = preg_replace('/^["\']|["\']$/', '', trim($expression ,' '));
+		$basePath = Blade::getProjectRootPath() . '/views/';
+		$fullPath = $basePath . $templatePath;
+		$candidatePaths = [];
 
-		if (!file_exists($path))
-			return $content;
+		if (pathinfo($fullPath, PATHINFO_EXTENSION)) {
+			$candidatePaths[] = $fullPath;
+		} else {
+			$candidatePaths[] = $fullPath . '.blade.php';
+			$candidatePaths[] = $fullPath . '.php';
+		}
+
+		$template = null;
+
+		foreach ($candidatePaths as $path) {
+			if (file_exists($path)) {
+				$template = file_get_contents($path);
+				break;
+			}
+		}
+
+		if (!$template)
+			throw new Exception("Blade template '{$template}' not found. Tried: " . implode(', ', $candidatePaths));
 
 		$content = str_replace("@template($expression)", '', $content);
-		$template = file_get_contents($path);
-		return str_replace("@pageContent", $content, $template);
+		return str_replace('@pageContent', $content, $template);
 	}, true);
 
 
 	Blade::directive('extends', function ($expression) {
-		if (!trim($expression))
-			return "";
+		$expression = trim($expression);
+		if ($expression === '')
+			return '';
 
-		$component = "";
-		$path = Blade::getProjectRootPath(). '/'. str_replace(["'", '"', "(", ")"], "", $expression);
+		$template = preg_replace('/^["\']|["\']$/', '', trim($expression ,' '));
+		$basePath = Blade::getProjectRootPath() . '/views/';
+		$fullPath = $basePath . $template;
 
-		if (file_exists($path))
-			$component = file_get_contents($path);
+		$candidatePaths = [];
+		if (pathinfo($fullPath, PATHINFO_EXTENSION)) {
+			$candidatePaths[] = $fullPath;
+		} else {
+			$candidatePaths[] = $fullPath . '.blade.php';
+			$candidatePaths[] = $fullPath . '.php';
+		}
 
-		return $component;
+		foreach ($candidatePaths as $path) {
+			if (file_exists($path)) {
+				return Blade::compile(file_get_contents($path));
+			}
+		}
+
+		throw new Exception("Blade template '{$template}' not found. Tried: " . implode(', ', $candidatePaths));
 	});
