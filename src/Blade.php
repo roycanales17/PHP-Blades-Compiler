@@ -22,9 +22,9 @@
 			self::tag($prefix, $suffix, $callback);
 		}
 
-		public static function compile(string $template, array $directives = []): string
+		public static function compile(string $content, array $directives = []): string
 		{
-			$compiler = new Compile($template, $directives);
+			$compiler = new Compile($content, $directives);
 			$compiler->importMainDirectory(dirname(getcwd()));
 			$compiler->importDirectives();
 			$compiler->startCompile();
