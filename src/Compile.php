@@ -10,7 +10,7 @@
 		private array $blades = [];
 		private array $tags = [];
 		private string $root = '';
-		private array $directives;
+		private static array $directives = [];
 		private array $protectedRanges = [];
 		private array $expressionCache = [];
 		private array $defaultDirectives = [
@@ -21,10 +21,12 @@
 			'/directives/Variables.php'
 		];
 
-		function __construct(string $template, array $directives)
+		function __construct(string $content, array $directives)
 		{
-			$this->content = $template;
-			$this->directives = $directives;
+			$this->content = $content;
+
+			if ($directives)
+				self::$directives = array_merge(self::$directives, $directives);
 		}
 
 		protected function registerDirectives(array $blades): self
@@ -59,7 +61,7 @@
 				require_once dirname(__DIR__) . $directive;
 			}
 
-			foreach ($this->directives as $directive) {
+			foreach (self::$directives as $directive) {
 				$path = $this->root . DIRECTORY_SEPARATOR . ltrim($directive, '/\\');
 				require_once $path;
 			}
