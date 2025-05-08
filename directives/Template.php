@@ -7,7 +7,7 @@
 			return $content;
 
 		$templatePath = preg_replace('/^["\']|["\']$/', '', trim($expression ,' '));
-		$basePath = Blade::getProjectRootPath() . 'views/';
+		$basePath = rtrim(Blade::getProjectRootPath(), '/') . '/views/';
 		$fullPath = $basePath . $templatePath;
 		$candidatePaths = [];
 
@@ -28,26 +28,10 @@
 		}
 
 		if (!$template) {
-			$trace = debug_backtrace();
-			$info = $trace[4] ?? [];
-			$resolved = 'Fail to resolved the path.';
-
-			if (($info['function'] ?? '') == 'render')
-				$resolved = $info['args'][0] ?? '';
-
-			throw new Exception("
-				<div style='font-family: sans-serif; background: #fdfdfd; border: 1px solid #ccc; padding: 20px; border-radius: 8px; color: #333;'>
-					<h2 style='margin-top: 0; color: #d33;'>Blade Template Path Not Found</h2>
-					<p>
-						<strong>Template:</strong> <b style='color: #d33;'>@template($expression)</b><br/>
-						<strong>Resolved Path:</strong> <b style='color: blue;'>{$resolved}</b>
-					</p>
-					<p><strong>Tried the following paths:</strong></p>
-					<ul style='margin-top: 5px; padding-left: 20px; color: #555;'>
-						" . implode('', array_map(fn($p) => "<li>$p</li>", $candidatePaths)) . "
-					</ul>
-				</div>
-			");
+			Blade::resolveError(debug_backtrace(), [
+				'expression' => $expression,
+				'candidatePaths' => $candidatePaths
+			]);
 		}
 
 		$content = str_replace("@template($expression)", '', $content);
@@ -56,12 +40,14 @@
 
 
 	Blade::directive('extends', function ($expression) {
+		static $recentPath = [];
+
 		$expression = trim($expression);
 		if ($expression === '')
 			return '';
 
 		$template = preg_replace('/^["\']|["\']$/', '', trim($expression ,' '));
-		$basePath = Blade::getProjectRootPath() . 'views/';
+		$basePath = rtrim(Blade::getProjectRootPath(), '/') . '/views/';
 		$fullPath = $basePath . $template;
 
 		$candidatePaths = [];
@@ -74,31 +60,19 @@
 
 		foreach ($candidatePaths as $path) {
 			if (file_exists($path)) {
+				$recentPath[] = $path;
 				return Blade::compile(file_get_contents($path));
 			}
 		}
 
-		$trace = debug_backtrace();
-		$info = $trace[7] ?? [];
-		$root = $info['file'] ?? '';
-
-		if (($info['function'] ?? '') === '{closure}') {
-			$info = $trace[6] ?? [];
-			$argPath = $info['args'][0] ?? '';
-			$root = $argPath ? $basePath . $argPath . '.php' : '';
+		$resolvedPath = '';
+		if ($recentPath) {
+			$resolvedPath = $recentPath[count($recentPath) - 1];
 		}
 
-		throw new Exception("
-			<div style='font-family: sans-serif; background: #fdfdfd; border: 1px solid #ccc; padding: 20px; border-radius: 8px; color: #333;'>
-				<h2 style='margin-top: 0; color: #d33;'>Blade Extends Path Not Found</h2>
-				<p>
-					<strong>Template:</strong> <b style='color: #d33;'>@extends($expression)</b><br/>
-					<strong>Resolved Path:</strong> <b style='color: blue;'>{$root}</b>
-				</p>
-				<p><strong>Tried the following paths:</strong></p>
-				<ul style='margin-top: 5px; padding-left: 20px; color: #555;'>
-					" . implode('', array_map(fn($p) => "<li>$p</li>", $candidatePaths)) . "
-				</ul>
-			</div>
-		");
+		Blade::resolveError(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), [
+			'expression' => $expression,
+			'candidatePaths' => $candidatePaths,
+			'resolvedPath' => $resolvedPath
+		]);
 	});

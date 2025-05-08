@@ -1,6 +1,6 @@
 
 @template('template')
-@extends('navbar')
+@extends('header')
 
 <h1>{{ 'Hello World!' }}</h1>
 <p>This is a testing content!</p>
