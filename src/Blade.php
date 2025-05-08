@@ -88,6 +88,7 @@
 			$expression = $attr['expression'] ?? '';
 			$candidatePaths = $attr['candidatePaths'] ?? [];
 			$resolvedPath = $attr['resolvedPath'] ?? '';
+			$template = $attr['template'] ?? '';
 
 			if (!$resolvedPath) {
 				foreach ($traces as $trace) {
@@ -105,11 +106,12 @@
 				}
 			}
 
+			$title = ucfirst($template);
 			throw new Exception("
 				<div style='font-family: sans-serif; background: #fdfdfd; border: 1px solid #ccc; padding: 20px; border-radius: 8px; color: #333;'>
-					<h2 style='margin-top: 0; color: #d33;'>Blade Template Path Not Found</h2>
+					<h2 style='margin-top: 0; color: #d33;'>Blade $title Path Not Found</h2>
 					<p>
-						<strong>Template:</strong> <b style='color: #d33;'>@template($expression)</b><br/>
+						<strong>Template:</strong> <b style='color: #d33;'>@$template($expression)</b><br/>
 						<strong>Resolved Path:</strong> <b style='color: blue;'>{$resolvedPath}</b>
 					</p>
 					<p><strong>Tried the following paths:</strong></p>

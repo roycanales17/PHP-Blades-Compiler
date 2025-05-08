@@ -30,7 +30,8 @@
 		if (!$template) {
 			Blade::resolveError(debug_backtrace(), [
 				'expression' => $expression,
-				'candidatePaths' => $candidatePaths
+				'candidatePaths' => $candidatePaths,
+				'template' => 'template'
 			]);
 		}
 
@@ -73,6 +74,7 @@
 		Blade::resolveError(debug_backtrace(), [
 			'expression' => $expression,
 			'candidatePaths' => $candidatePaths,
-			'resolvedPath' => $resolvedPath
+			'resolvedPath' => $resolvedPath,
+			'template' => 'extends'
 		]);
 	});
