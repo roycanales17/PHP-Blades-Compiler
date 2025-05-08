@@ -100,7 +100,7 @@
 						break;
 					}
 
-					if ($file == 'Blade.php' && ($trace['function'] ?? '') == 'compile')
+					if (in_array($file, ['Blade.php', 'Component.php']) && ($trace['function'] ?? '') == 'compile')
 						$stop = true;
 				}
 			}

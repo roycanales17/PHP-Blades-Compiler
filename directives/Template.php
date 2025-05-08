@@ -70,7 +70,7 @@
 			$resolvedPath = $recentPath[count($recentPath) - 1];
 		}
 
-		Blade::resolveError(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), [
+		Blade::resolveError(debug_backtrace(), [
 			'expression' => $expression,
 			'candidatePaths' => $candidatePaths,
 			'resolvedPath' => $resolvedPath
