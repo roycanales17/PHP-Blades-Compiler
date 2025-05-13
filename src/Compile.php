@@ -146,31 +146,51 @@
 
 		private function compileTemplate(string $directive, $callback, int $params, bool $replace): void
 		{
-			if ($params)
-				$pattern = '/@' . preg_quote($directive, '/') . '\s*\(([^)]*)\)/';
-			else
+			if ($params) {
+				$pattern = '/@' . preg_quote($directive, '/') . '\s*\(/';
+
+				if (preg_match_all($pattern, $this->content, $matches, PREG_OFFSET_CAPTURE)) {
+					$length = strlen($this->content);
+
+					foreach (array_reverse($matches[0]) as $match) {
+						$start = $match[1] + strlen($match[0]);
+						$depth = 1;
+						$expression = '';
+
+						for ($i = $start; $i < $length; $i++) {
+							$char = $this->content[$i];
+
+							if ($char === '(') {
+								$depth++;
+							} elseif ($char === ')') {
+								$depth--;
+								if ($depth === 0) {
+									break;
+								}
+							}
+
+							$expression .= $char;
+						}
+
+						$defaultParams = $this->defaultParams($params, $expression);
+
+						$replaceStr = $callback(...$defaultParams);
+						$this->content = substr_replace($this->content, $replaceStr, $match[1], strlen($match[0]) + strlen($expression) + 2);
+						$length = strlen($this->content);
+					}
+				}
+			} else {
 				$pattern = '/@' . preg_quote($directive, '/') . '/';
 
-			if ($replace) {
-				preg_match($pattern, $this->content, $matches);
-				if ($params) {
-					$defaultParams = $this->defaultParams($params, $matches[1] ?? '');
-					$this->content = $callback(...$defaultParams);
+				if ($replace) {
+					$this->content = $callback();
 					return;
 				}
 
-				$this->content = $callback();
-				return;
+				$this->content = preg_replace_callback($pattern, function ($matches) use ($callback) {
+					return $callback();
+				}, $this->content);
 			}
-
-			$this->content = preg_replace_callback($pattern, function ($matches) use ($callback, $params, $replace) {
-				if ($params && $matches[1] ?? '') {
-					$defaultParams = $this->defaultParams($params, $matches[1] ?? '') ?: [];
-					return $callback(...$defaultParams);
-				}
-
-				return $callback();
-			}, $this->content);
 		}
 
 		private function defaultParams(int $total, string $expression): array
