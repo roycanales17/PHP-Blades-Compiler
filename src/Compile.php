@@ -150,6 +150,7 @@
 				$pattern = '/@' . preg_quote($directive, '/') . '\s*\(/';
 
 				if (preg_match_all($pattern, $this->content, $matches, PREG_OFFSET_CAPTURE)) {
+
 					$length = strlen($this->content);
 
 					foreach (array_reverse($matches[0]) as $match) {
@@ -173,9 +174,12 @@
 						}
 
 						$defaultParams = $this->defaultParams($params, $expression);
-
 						$replaceStr = $callback(...$defaultParams);
-						$this->content = substr_replace($this->content, $replaceStr, $match[1], strlen($match[0]) + strlen($expression) + 2);
+
+						$replaceStart = $match[1];
+						$replaceLength = strlen($match[0]) + strlen($expression) + 1;
+
+						$this->content = substr_replace($this->content, $replaceStr, $replaceStart, $replaceLength);
 						$length = strlen($this->content);
 					}
 				}
