@@ -78,3 +78,7 @@
 			'template' => 'extends'
 		]);
 	});
+
+	Blade::directive('json', function ($expression) {
+		return "<?= json_encode($expression) ?>";
+	});
