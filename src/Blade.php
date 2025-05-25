@@ -49,7 +49,8 @@
 
 		public static function eval(string $script, array $data = [], object|null $onError = null): void
 		{
-			$tempFile = tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
+			$development = defined('DEVELOPMENT') && DEVELOPMENT;
+			$tempFile = $development ? '../compiled.php' : tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
 			file_put_contents($tempFile, $script);
 
 			try {
@@ -68,7 +69,9 @@
 					]);
 				}
 			} finally {
-				unlink($tempFile);
+				if (!$development) {
+					unlink($tempFile);
+				}
 			}
 		}
 
