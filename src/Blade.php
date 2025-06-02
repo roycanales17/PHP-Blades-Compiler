@@ -8,7 +8,8 @@
 
 	class Blade
 	{
-		private static string $path = '';
+		private static array $tracePaths = [];
+		private static array $errorTraces = [];
 
 		use Properties;
 
@@ -34,8 +35,7 @@
 
 		public static function render(string $path, array $directives = [], array $extract = [], object|null $onError = null): void
 		{
-			# In case if it will throw an error
-			self::$path = $path;
+			self::$tracePaths[] = $path;
 
 			if (file_exists($path = self::getProjectRootPath().'/'.$path)) {
 
@@ -54,23 +54,34 @@
 			file_put_contents($tempFile, $script);
 
 			try {
-				(static function () use ($tempFile, $data) {
+				$__resolvedPath = '';
+				(static function () use ($tempFile, $data, &$__resolvedPath) {
+					$__resolvedPath = self::$tracePaths[count(self::$tracePaths) - 1];
 					extract($data, EXTR_SKIP);
 					include $tempFile;
 				})();
 			} catch (Exception|Error $e) {
-				if (is_callable($onError)) {
-					$onError([
+				if (empty(self::$errorTraces)) {
+					self::$errorTraces = [
 						'message' => $e->getMessage(),
 						'line' => $e->getLine(),
-						'path' => self::$path ?: $tempFile,
+						'path' => $__resolvedPath,
 						'code' => (int) $e->getCode(),
-						'content' => $script
-					]);
+						'traces' => self::$tracePaths
+					];
 				}
 			} finally {
 				if (!$development) {
 					unlink($tempFile);
+				}
+
+				if (!empty(self::$errorTraces)) {
+					$errorTrace = self::$errorTraces;
+					if (is_callable($onError)) {
+						$onError($errorTrace);
+					} else {
+						throw new Exception("Blade rendering error in '{$errorTrace['path']}': {$errorTrace['message']} on line {$errorTrace['line']}.");
+					}
 				}
 			}
 		}
