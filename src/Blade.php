@@ -10,7 +10,6 @@
 	{
 		private static array $tracePaths = [];
 		private static array $errorTraces = [];
-		private static bool $reported = false;
 
 		use Properties;
 
@@ -75,16 +74,11 @@
 				if (!$development) {
 					unlink($tempFile);
 				}
+			}
 
-				if (!empty(self::$errorTraces) && !self::$reported) {
-					$errorTrace = self::$errorTraces;
-					if (is_callable($onError)) {
-						$onError($errorTrace);
-						self::$reported = true;
-					} else {
-						throw new Exception("Blade rendering error in '{$errorTrace['path']}': {$errorTrace['message']} on line {$errorTrace['line']}.");
-					}
-				}
+			if (!empty(self::$errorTraces)) {
+				$errorTrace = self::$errorTraces;
+				throw new Exception("Blade rendering error in '{$errorTrace['path']}': {$errorTrace['message']} on line {$errorTrace['line']}.");
 			}
 		}
 
