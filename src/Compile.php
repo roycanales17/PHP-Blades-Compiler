@@ -103,7 +103,7 @@
 
 		private function compileTags(string $prefix, string $suffix, callable $template): void
 		{
-			$pattern = '/' . preg_quote($prefix, '/') . '\s*(.*?)\s*' . preg_quote($suffix, '/') . '/s';
+			$pattern = '/' . preg_quote($prefix, '/') . '(.*?)' . preg_quote($suffix, '/') . '/s';
 
 			$offset = 0;
 			$this->protectedRanges = [];
