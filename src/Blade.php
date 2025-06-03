@@ -44,6 +44,8 @@
 
 				# Compile
 				self::eval(self::compile($content, $directives), $extract);
+			} else {
+				throw new Exception("File $path does not exist");
 			}
 		}
 
