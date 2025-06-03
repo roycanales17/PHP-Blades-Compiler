@@ -49,8 +49,6 @@
 
 		private static function eval(string $script, array $data = []): void
 		{
-			static $errorLogs = [];
-
 			$development = defined('DEVELOPMENT') && DEVELOPMENT;
 			$tempFile = $development ? '../compiled.php' : tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
 			file_put_contents($tempFile, $script);
@@ -63,19 +61,13 @@
 					include $tempFile;
 				})();
 			} catch (Exception|Error $e) {
-				$errorLogs[] = [
-					'message' => $e->getMessage(),
-					'file' => $e->getFile(),
-					'line' => $e->getLine()
-				];
-
 				if (empty(self::$errorTraces)) {
 					self::$errorTraces = [
 						'message' => $e->getMessage(),
 						'line' => $e->getLine(),
 						'path' => $__resolvedPath,
 						'code' => (int) $e->getCode(),
-						'traces' => self::$tracePaths
+						'traces' => $e->getTrace()
 					];
 				}
 			} finally {
@@ -89,15 +81,23 @@
 
 				// Build HTML for errorLogs
 				$errorLogsHtml = '';
-				foreach ($errorLogs as $i => $log) {
+				foreach ($errorTrace['traces'] as $i => $log) {
+					$func = $log['function'];
+					$file = $log['file'] ?? 'N/A';
+					$line = $log['line'] ?? 'N/A';
+
+					if (realpath($tempFile) == $file)
+						$file = $errorTrace['path'];
+
 					$errorLogsHtml .= <<<HTML
 					<hr>
-					<strong>Blade Errors #{$i}:</strong><br>
-					Message: {$log['message']}<br>
-					File: {$log['file']}<br>
-					Line: {$log['line']}<br>
+					<strong>Error Trace #{$i}:</strong><br>
+					Message: $func()<br>
+					File: $file<br>
+					Line: $line<br>
 					HTML;
 				}
+
 
 				// Final UI output
 				$uiError = <<<HTML
