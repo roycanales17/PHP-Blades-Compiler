@@ -33,22 +33,24 @@
 			return $compiler->getTemplate();
 		}
 
-		public static function render(string $path, array $directives = [], array $extract = [], object|null $onError = null): void
+		public static function render(string $path, array $directives = [], array $extract = []): void
 		{
 			self::$tracePaths[] = $path;
 
-			if (file_exists($path = self::getProjectRootPath().'/'.$path)) {
+			if (file_exists($path = Helper::getProjectRootPath().'/'.$path)) {
 
 				# Fetch the content
 				$content = file_get_contents($path);
 
 				# Compile
-				self::eval(self::compile($content, $directives), $extract, $onError);
+				self::eval(self::compile($content, $directives), $extract);
 			}
 		}
 
-		public static function eval(string $script, array $data = [], object|null $onError = null): void
+		private static function eval(string $script, array $data = []): void
 		{
+			static $errorLogs = [];
+
 			$development = defined('DEVELOPMENT') && DEVELOPMENT;
 			$tempFile = $development ? '../compiled.php' : tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
 			file_put_contents($tempFile, $script);
@@ -61,6 +63,12 @@
 					include $tempFile;
 				})();
 			} catch (Exception|Error $e) {
+				$errorLogs[] = [
+					'message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine()
+				];
+
 				if (empty(self::$errorTraces)) {
 					self::$errorTraces = [
 						'message' => $e->getMessage(),
@@ -78,57 +86,30 @@
 
 			if (!empty(self::$errorTraces)) {
 				$errorTrace = self::$errorTraces;
-				throw new Exception("Blade rendering error in '{$errorTrace['path']}': {$errorTrace['message']} on line {$errorTrace['line']}.");
-			}
-		}
 
-		public static function getProjectRootPath(): string
-		{
-			$vendorPos = strpos(__DIR__, 'vendor');
-			if ($vendorPos !== false) {
-				return substr(__DIR__, 0, $vendorPos);
-			}
-
-			return dirname(__DIR__);
-		}
-
-		public static function resolveError(array $traces, array $attr): void
-		{
-			$stop = false;
-			$expression = $attr['expression'] ?? '';
-			$candidatePaths = $attr['candidatePaths'] ?? [];
-			$resolvedPath = $attr['resolvedPath'] ?? '';
-			$template = $attr['template'] ?? '';
-
-			if (!$resolvedPath) {
-				foreach ($traces as $trace) {
-					$file = $trace['file'] ?? '';
-					$file = explode(DIRECTORY_SEPARATOR, $file);
-					$file = array_pop($file);
-
-					if ($stop) {
-						$resolvedPath = $trace['args'][0] ?? '';
-						break;
-					}
-
-					if (in_array($file, ['Blade.php', 'Component.php']) && ($trace['function'] ?? '') == 'compile')
-						$stop = true;
+				// Build HTML for errorLogs
+				$errorLogsHtml = '';
+				foreach ($errorLogs as $i => $log) {
+					$errorLogsHtml .= <<<HTML
+					<hr>
+					<strong>Blade Errors #{$i}:</strong><br>
+					Message: {$log['message']}<br>
+					File: {$log['file']}<br>
+					Line: {$log['line']}<br>
+					HTML;
 				}
-			}
 
-			$title = ucfirst($template);
-			throw new Exception("
-				<div style='font-family: sans-serif; background: #fdfdfd; border: 1px solid #ccc; padding: 20px; border-radius: 8px; color: #333;'>
-					<h2 style='margin-top: 0; color: #d33;'>Blade $title Path Not Found</h2>
-					<p>
-						<strong>Template:</strong> <b style='color: #d33;'>@$template($expression)</b><br/>
-						<strong>Resolved Path:</strong> <b style='color: blue;'>{$resolvedPath}</b>
-					</p>
-					<p><strong>Tried the following paths:</strong></p>
-					<ul style='margin-top: 5px; padding-left: 20px; color: #555;'>
-						" . implode('', array_map(fn($p) => "<li>$p</li>", $candidatePaths)) . "
-					</ul>
+				// Final UI output
+				$uiError = <<<HTML
+				<div style="padding:1rem; background:#fff3f3; border:1px solid #ffcccc; color:#a00; font-family:monospace;">
+					<strong>Main Error:</strong> {$errorTrace['message']}<br>
+					<strong>File:</strong> {$errorTrace['path']}<br>
+					<strong>Line:</strong> {$errorTrace['line']}<br>
+					{$errorLogsHtml}
 				</div>
-			");
+				HTML;
+
+				throw new Exception($uiError);
+			}
 		}
 	}

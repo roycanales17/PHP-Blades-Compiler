@@ -1,5 +1,6 @@
 <?php
 
+	use App\Content\Helper;
 	use App\Content\Blade;
 
 	Blade::directive('template', function ($expression, $content) {
@@ -7,7 +8,7 @@
 			return $content;
 
 		$templatePath = preg_replace('/^["\']|["\']$/', '', trim($expression ,' '));
-		$basePath = rtrim(Blade::getProjectRootPath(), '/') . '/views/';
+		$basePath = rtrim(Helper::getProjectRootPath(), '/') . '/views/';
 		$fullPath = $basePath . $templatePath;
 		$candidatePaths = [];
 
@@ -28,7 +29,7 @@
 		}
 
 		if (!$template) {
-			Blade::resolveError(debug_backtrace(), [
+			Helper::resolveError(debug_backtrace(), [
 				'expression' => $expression,
 				'candidatePaths' => $candidatePaths,
 				'template' => 'template'
@@ -48,7 +49,7 @@
 			return '';
 
 		$template = preg_replace('/^["\']|["\']$/', '', trim($expression ,' '));
-		$basePath = rtrim(Blade::getProjectRootPath(), '/') . '/views/';
+		$basePath = rtrim(Helper::getProjectRootPath(), '/') . '/views/';
 		$fullPath = $basePath . $template;
 
 		$candidatePaths = [];
@@ -71,7 +72,7 @@
 			$resolvedPath = $recentPath[count($recentPath) - 1];
 		}
 
-		Blade::resolveError(debug_backtrace(), [
+		Helper::resolveError(debug_backtrace(), [
 			'expression' => $expression,
 			'candidatePaths' => $candidatePaths,
 			'resolvedPath' => $resolvedPath,
