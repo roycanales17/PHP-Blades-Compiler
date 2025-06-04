@@ -1,10 +1,11 @@
 <?php
 
-	use App\Content\Blade;
+	use App\View\Compilers\Blade;
+	use App\View\Compilers\Scheme\CompilerException;
 
-	spl_autoload_register(function ($class) {
+	spl_autoload_register(function ( $class) {
 		$namespaces = [
-			'App\\Content\\' => __DIR__ . '/src/'
+			'App\\View\\Compilers' => __DIR__ . '/src/'
 		];
 		foreach ($namespaces as $namespace => $baseDir) {
 			if (str_starts_with($class, $namespace)) {
@@ -19,4 +20,8 @@
 	});
 
 	// Render the content
-	Blade::render('views/home.blade.php');
+	try {
+		echo(Blade::compile(file_get_contents( 'views/home.blade.php' )));
+	} catch (CompilerException $e) {
+		echo($e->getMessage());
+	}

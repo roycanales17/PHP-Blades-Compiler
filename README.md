@@ -12,101 +12,77 @@ composer require roy404/blades
 
 # Blades Feature Documentation
 
-`Blades` is a PHP library designed to provide Blade-inspired templating capabilities. With this library, you can use Blade syntax and custom directives in your PHP applications, facilitating a smooth transition for developers familiar with Laravel's Blade engine. The library enhances your templating workflow with custom methods and functionalities that mimic Blade's behavior while offering additional flexibility for use outside the Laravel ecosystem.
+`Blades` is a PHP library designed to provide Blade-inspired templating capabilities. With this library, you can use Blade syntax and custom directives in your PHP applications, facilitating a smooth transition for developers. The library enhances your templating workflow with custom methods and functionalities that mimic Blade's behavior while offering additional flexibility for use outside the Laravel ecosystem.
 
 # Blade Custom Methods Usage Guide
 
-This guide explains how to use custom Blade methods, enabling dynamic and reusable templates. The following methods allow you to define custom directives and wrap content with tailored logic.
+This guide helps you understand when and how to use the `compile`, `loadDirectives`, and `load` methods in your project.
 
-### **- Using the `Blade::directive` Method**
+## 🧩 1. `compile()`
 
-The `Blade::directive` method allows you to define custom Blade directives. You can use this to create reusable Blade directives that can be used throughout your Laravel views. The Blade::directive method takes two arguments: the name of the directive and a closure that defines the behavior of the directive.
+### 🔍 What It Does
+- Compiles raw template content (as a string).
+- Applies all registered compiler instances and directives.
+- Returns the final compiled output as a string.
 
-**How to Use:**
-1. Define the custom directive using `Blade::directive`.
-2. Pass the directive name as the first argument (e.g., `'title'`).
-3. Pass a closure as the second argument that processes the expression passed to the directive.
+### ✅ When To Use
+- You want to render template content stored in a variable or database.
+- You need to manually post-process or store the compiled output.
+
+### 🧪 Example
 ```php
-Blade::directive('directive_name', function ($expression) {
-    // Return the processed directive output
-});
+$content = '<div>Hello, {{ $name }}!</div>';
+echo Blade::compile($content, ['name' => 'Robroy Canales']);
 ```
 
-**Example Usage:**
+## 🧩 2. `loadDirectives()`
 
-**Example 1: Define a @title Directive**
+### 🔍 What It Does
+- Loads all directive definition files from a given directory.
+- Each directive file should define logic extending the compiler.
 
-You can create a custom @title directive to output the content inside the `<title>` HTML tag.
+### ✅ When To Use
+- You need to register your own custom directives.
+- You want to make sure directives are available before calling `compile()`.
 
+Note: You usually don’t need to call this manually — compile() will automatically invoke it if no directives are loaded.
+
+### 🧪 Example
 ```php
-Blade::directive('title', function ($expression) {
-    return "<title>{$expression}</title>";
-});
+Blade::loadDirectives(__DIR__ . '/directives');
+``` 
+
+## 🧩 3. `load()`
+
+### 🔍 What It Does
+- Loads and compiles a `.php` (or template) file.
+- Renders it directly with the provided variables.
+
+### ✅ When To Use
+- You have a physical file you want to render.
+- You want to output the view directly (e.g. from a controller or route handler).
+
+### 🧪 Example
+```php
+Blade::load(__DIR__ . '/views/profile.php', ['user' => $user]);
 ```
 
-* **Usage in Blade View:**
-  ```html
-  <head>
-    @title('Home Page')
-  </head>
-  ```
+## 🛠️ 4. `build()`
 
-* **Output**
-  ```html
-  <head>
-    <title>Home Page</title>
-  </head>
-  ```
-  
-**Explanation**
+### 🔍 What It Does
+- Initializes a new Blade engine instance using a custom compiler (implementing `ViewsInterface`).
+- Returns the instance for chaining, such as registering custom directives.
 
-* The directive @title is replaced with the expression passed to it, wrapped in a `<title>` tag.
-* In the Blade view, you can use the directive by simply writing `@title('Your Title')`.
+### ✅ When To Use
+- You want to register **custom directives** to extend the template engine.
+- You are implementing your own logic inside a compiler class (like a plugin).
 
-
-### **- Using the `Blade::wrap` Method**
-
-The `Blade::wrap` method is used to customize the output of content inside the `{{ }}` Blade syntax. It allows you to wrap the content of the expression inside custom PHP code.
-
-**How to Use:**
-
-1. Define the custom wrapper using `Blade::wrap`.
-2. Pass the opening and closing delimiters as the first and second arguments (e.g., `"{{"` and `"}}"`).
-3. Pass a closure as the third argument that processes the expression passed between the delimiters.
-
-**Syntax**
+### 🧪 Example
 ```php
-Blade::wrap('open_delimiter', 'close_delimiter', function ($expression) {
-    // Return the processed expression
+Blade::build(new Loops)->register(function (Blade $blade) {
+	// Add @break directive
+	$blade->directive('break', fn() => '<?php break; ?>');
+
+	// Add @continue directive
+	$blade->directive('continue', fn() => '<?php continue; ?>');
 });
-```
-
-**Example Usage:**
-
-***Example 1: Wrap Blade Expressions with htmlentities()***
-
-You can use the `wrap` method to ensure that all content inside the `{{ }}` delimiters is safely encoded using `htmlentities()`.
-
-```php
-Blade::wrap("{{", "}}", function ($expression) {
-    return "<?= htmlentities($expression ?? '') ?>";
-});
-```
-
-* **Usage in Blade View:**
-  ```html
-  <input type="text" value="{{ 'Hi John!' }}" />
-  ```
-* **Output:**
-  ```html
-  <input type="text" value="<?= htmlentities('Display me') ?>" />
-  ```
-
-**Explanation**
-
-* The `wrap` method customizes the Blade output by wrapping the expression inside `htmlentities()`.
-* This ensures that special characters like `<`, `>`, and `&` are encoded and safely rendered as HTML.
-
-**Conclusion**
-
-By using `Blade::directive` and `Blade::wrap`, you can create powerful, reusable Blade directives and customize how Blade expressions are processed and displayed in your Laravel views. This provides flexibility for defining dynamic content and ensuring safe output in your application.
