@@ -28,7 +28,7 @@
 		 */
 		public function directive(string $directive, Closure $callback): void {
 			if (!$directive) {
-				throw new CompilerException("Directive '{$directive}' not defined");
+				throw new CompilerException("Directive is required");
 			}
 
 			$this->directives[$directive] = $callback;
