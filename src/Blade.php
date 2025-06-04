@@ -124,7 +124,7 @@
 			if ($extract && !$isAssociativeArray($extract))
 				throw new CompilerException("Invalid data passed for extraction: " . json_encode($extract));
 
-			self::capture(self::compile(file_get_contents($path)), $extract);
+			self::capture(self::compile(file_get_contents($path), $extract));
 		}
 
 		/**
