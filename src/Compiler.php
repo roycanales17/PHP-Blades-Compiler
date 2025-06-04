@@ -45,7 +45,7 @@
 		 */
 		public function wrap(string $prefix, string $suffix, Closure $callback): void {
 			if (!$prefix || !$suffix) {
-				throw new CompilerException('Wrap method requires both prefix and suffix');
+				throw CompilerException::invalidWrapper('both prefix and suffix.');
 			}
 
 			$this->wrapper[] = [
