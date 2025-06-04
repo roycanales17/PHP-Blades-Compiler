@@ -18,24 +18,7 @@ composer require roy404/blades
 
 This guide helps you understand when and how to use the `compile`, `loadDirectives`, and `load` methods in your project.
 
-## 🧩 1. `compile()`
-
-### 🔍 What It Does
-- Compiles raw template content (as a string).
-- Applies all registered compiler instances and directives.
-- Returns the final compiled output as a string.
-
-### ✅ When To Use
-- You want to render template content stored in a variable or database.
-- You need to manually post-process or store the compiled output.
-
-### 🧪 Example
-```php
-$content = '<div>Hello, {{ $name }}!</div>';
-echo Blade::compile($content, ['name' => 'Robroy Canales']);
-```
-
-## 🧩 2. `loadDirectives()`
+## 🧩 1. `loadDirectives()`
 
 ### 🔍 What It Does
 - Loads all directive definition files from a given directory.
@@ -51,6 +34,23 @@ Note: You usually don’t need to call this manually — compile() will automati
 ```php
 Blade::loadDirectives(__DIR__ . '/directives');
 ``` 
+
+## 🧩 2. `compile()`
+
+### 🔍 What It Does
+- Compiles raw template content (as a string).
+- Applies all registered compiler instances and directives.
+- Returns the final compiled output as a string.
+
+### ✅ When To Use
+- You want to render template content stored in a variable or database.
+- You need to manually post-process or store the compiled output.
+
+### 🧪 Example
+```php
+$content = '<div>Hello, {{ $name }}!</div>';
+echo Blade::compile($content, ['name' => 'Robroy Canales']);
+```
 
 ## 🧩 3. `load()`
 
