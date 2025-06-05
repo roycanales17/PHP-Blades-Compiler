@@ -133,7 +133,7 @@
 		 * Errors during execution are caught and formatted into a detailed HTML error message,
 		 * including stack traces, then thrown as a CompilerException.
 		 *
-		 * The temporary compiled file is deleted after execution.
+		 * The temporary compiled file is deleted after execution, except in development mode.
 		 *
 		 * @param string $content The compiled PHP content to execute.
 		 * @param array $data An associative array of variables to be extracted into the scope of the included template.
@@ -144,7 +144,8 @@
 		{
 			static $errorTraces = [];
 
-			$tempFile = tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
+			$development = defined('DEVELOPMENT') && DEVELOPMENT;
+			$tempFile = $development ? '../blade.php' : tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
 			try
 			{
 				file_put_contents($tempFile, $content);
@@ -167,7 +168,7 @@
 					];
 				}
 			} finally {
-				unlink($tempFile);
+				if (!$development) unlink($tempFile);
 			}
 
 			if (!empty($errorTraces)) {
