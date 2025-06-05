@@ -144,8 +144,8 @@
 		{
 			static $errorTraces = [];
 
-			$development = defined('DEVELOPMENT') && DEVELOPMENT;
-			$tempFile = $development ? '../blade.php' : tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
+			$tempFile = tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
+			$realPath = realpath($tempFile);
 			try
 			{
 				file_put_contents($tempFile, $content);
@@ -180,7 +180,7 @@
 					$file = $log['file'] ?? 'N/A';
 					$line = $log['line'] ?? 'N/A';
 
-					if (realpath($tempFile) == $file)
+					if ($realPath == $file)
 						$file = $errorTrace['path'];
 
 					$errorLogsHtml .= <<<HTML
