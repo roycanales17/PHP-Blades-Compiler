@@ -133,7 +133,7 @@
 		 * Errors during execution are caught and formatted into a detailed HTML error message,
 		 * including stack traces, then thrown as a CompilerException.
 		 *
-		 * The temporary compiled file is deleted after execution, except in development mode.
+		 * The temporary compiled file is deleted after execution.
 		 *
 		 * @param string $content The compiled PHP content to execute.
 		 * @param array $data An associative array of variables to be extracted into the scope of the included template.
@@ -168,7 +168,7 @@
 					];
 				}
 			} finally {
-				if (!$development) unlink($tempFile);
+				unlink($tempFile);
 			}
 
 			if (!empty($errorTraces)) {
