@@ -145,7 +145,7 @@
 			static $errorTraces = [];
 
 			$tempFile = tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
-			$realPath = realpath($tempFile);
+			$realPath = $tempFile;
 			try
 			{
 				file_put_contents($tempFile, $content);
@@ -161,6 +161,7 @@
 				if (empty($errorTraces)) {
 					$errorTraces = [
 						'path' => $__resolvedPath,
+						'tempPath' => $realPath,
 						'message' => $e->getMessage(),
 						'line' => $e->getLine(),
 						'code' => $e->getCode(),
@@ -180,7 +181,7 @@
 					$file = $log['file'] ?? 'N/A';
 					$line = $log['line'] ?? 'N/A';
 
-					if ($realPath == $file)
+					if ($errorTrace['tempPath'] == $file)
 						$file = $errorTrace['path'];
 
 					$errorLogsHtml .= <<<HTML
