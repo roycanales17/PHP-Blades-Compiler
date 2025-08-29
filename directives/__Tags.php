@@ -6,7 +6,7 @@
 	Blade::build(new Tags)->register(function (Blade $blade)
 	{
 		$blade->wrap("{{--", "--}}", function ($expression) {
-			return "<?php // $expression ?>";
+			return "<?php /* $expression */ ?>";
 		});
 
 		$blade->wrap("{{", "}}", function ($expression) {
