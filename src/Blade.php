@@ -159,13 +159,23 @@
 
 			} catch (Exception|Error $e) {
 				if (empty($errorTraces)) {
+					$traces = $e->getTrace();
+					$originalTrace = [
+						'message'  => $e->getMessage(),
+						'code'     => $e->getCode(),
+						'file'     => $e->getFile(),
+						'line'     => $e->getLine(),
+						'previous' => $e->getPrevious()?->getMessage(),
+					];
+
+					array_unshift($traces, $originalTrace);
 					$errorTraces = [
 						'path' => $__resolvedPath,
 						'tempPath' => $realPath,
 						'message' => $e->getMessage(),
 						'line' => $e->getLine(),
 						'code' => $e->getCode(),
-						'traces' => $e->getTrace()
+						'traces' => $traces
 					];
 				}
 			} finally {
