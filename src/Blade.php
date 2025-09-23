@@ -176,6 +176,14 @@
 				$errorTrace = $errorTraces;
 				$errorLogsHtml = '';
 
+				// Resolve the file line accurately
+				foreach ($errorTrace['traces'] as $trace) {
+					if (($trace['file'] ?? '') == $tempFile) {
+						$errorTrace['line'] = $trace['line'];
+						break;
+					}
+				}
+
 				foreach ($errorTrace['traces'] as $i => $log) {
 					$func = $log['function'];
 					$file = $log['file'] ?? 'N/A';
