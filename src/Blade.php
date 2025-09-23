@@ -195,20 +195,26 @@
 				}
 
 				foreach ($errorTrace['traces'] as $i => $log) {
-					$func = $log['function'];
+					if (isset($log['function'])) {
+						$call = ($log['class'] ?? '') . ($log['type'] ?? '') . $log['function'] . '()';
+					} else {
+						$call = '[no function]';
+					}
+
 					$file = $log['file'] ?? 'N/A';
 					$line = $log['line'] ?? 'N/A';
 
-					if ($errorTrace['tempPath'] == $file)
+					if (($errorTrace['tempPath'] ?? null) === $file) {
 						$file = $errorTrace['path'];
+					}
 
 					$errorLogsHtml .= <<<HTML
-					<hr />
-					<strong>Error Trace #{$i}:</strong><br>
-					Message: $func()<br>
-					File: $file<br>
-					Line: $line<br>
-					HTML;
+                    <hr />
+                    <strong>Error Trace #{$i}:</strong><br>
+                    Call: $call<br>
+                    File: $file<br>
+                    Line: $line<br>
+                    HTML;
 				}
 
 
