@@ -142,6 +142,7 @@
 		 */
 		private static function capture(string $content, array $data = []): void
 		{
+			static $reported = false;
 			static $errorTraces = [];
 
 			$tempFile = tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
@@ -182,7 +183,7 @@
 				unlink($tempFile);
 			}
 
-			if (!empty($errorTraces)) {
+			if (!empty($errorTraces) && !$reported) {
 				$errorTrace = $errorTraces;
 				$errorLogsHtml = '';
 
@@ -228,6 +229,7 @@
 				</div>
 				HTML;
 
+				$reported = true;
 				throw new CompilerException($uiError);
 			}
 		}
