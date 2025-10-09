@@ -2,10 +2,17 @@
 
 	use App\View\Compilers\Blade;
 	use App\View\Compilers\templates\Costume;
-	use App\View\Compilers\scheme\CompilerException;
 
 	Blade::build(new Costume)->register(function (Blade $blade)
 	{
+		$blade->directive('csrf', function () {
+			$token = '';
+			if (function_exists('csrf_token')) {
+				$token = csrf_token();
+			}
+			return "<input type='hidden' name='csrf-token' value='$token'>";
+		});
+
 		$blade->directive('json', function ($expression) {
 			return "<?= json_encode($expression) ?>";
 		});
