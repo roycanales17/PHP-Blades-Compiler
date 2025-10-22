@@ -154,6 +154,9 @@
 
 				(static function () use ($tempFile, $data, &$__resolvedPath) {
 					$__resolvedPath = self::$tracePaths[count(self::$tracePaths) - 1] ?? $tempFile;
+					if (isset($_SESSION)) {
+						$_SESSION['__flash']['__resolved_path__'] = $__resolvedPath;
+					}
 					extract($data, EXTR_SKIP);
 					include $tempFile;
 				})();
