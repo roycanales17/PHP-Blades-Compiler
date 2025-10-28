@@ -34,11 +34,10 @@
 				]);
 
 				try {
-					return function() use ($attributes, $data) {
-						ob_start();
-						Blade::load($attributes['src'], $data);
-						return ob_get_clean();
-					};
+					// Execute the component rendering immediately
+					ob_start();
+					Blade::load($attributes['src'], $data);
+					return ob_get_clean();
 				} catch (Throwable $e) {
 					return "<!-- ⚠️ Component render failed: {$e->getMessage()} -->";
 				}
