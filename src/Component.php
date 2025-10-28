@@ -4,7 +4,7 @@
 
 	use Throwable;
 
-	class Component
+	final class Component
 	{
 		/**
 		 * Parses custom <x-component> tags in HTML and replaces them with rendered views.
