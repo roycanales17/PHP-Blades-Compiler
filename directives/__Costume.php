@@ -24,6 +24,7 @@
 			if ($expression === '')
 				return '';
 
+			$expression = str_replace('.', '/', $expression);
 			$template = preg_replace('/^["\']|["\']$/', '', trim($expression ,' '));
 			$basePath = $blade->getProjectRootPath('/views/');
 
