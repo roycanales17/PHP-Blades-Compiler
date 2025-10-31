@@ -2,6 +2,7 @@
 
 	namespace App\View\Compilers;
 
+	use Error;
 	use Throwable;
 
 	final class Component
@@ -36,9 +37,11 @@
 				try {
 					// Execute the component rendering immediately
 					ob_start();
-					Blade::load($attributes['src'], $data);
+					$src = "../views/" . ltrim($attributes['src'], '/');
+					$src = pathinfo($src, PATHINFO_DIRNAME) . '/' . pathinfo($src, PATHINFO_FILENAME) . '.blade.php';
+					Blade::load($src, $data);
 					return ob_get_clean();
-				} catch (Throwable $e) {
+				} catch (Throwable | Error $e) {
 					if (defined('DEVELOPMENT') && DEVELOPMENT) {
 						return "<!-- ⚠️ Template render failed: " . htmlspecialchars($e->getMessage(), ENT_QUOTES) . " -->";
 					}
