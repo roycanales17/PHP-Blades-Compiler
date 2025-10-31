@@ -1,6 +1,6 @@
 {
   "name": "roy404/blades",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "description": "A PHP library that provides Blade-like templating functionality, enabling seamless integration of Blade syntax and components.",
   "keywords": [
     "php",
