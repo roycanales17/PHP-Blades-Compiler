@@ -7,15 +7,15 @@
 	final class Component
 	{
 		/**
-		 * Parses custom <x-component> tags in HTML and replaces them with rendered views.
+		 * Parses custom <x-template> tags in HTML and replaces them with rendered views.
 		 *
 		 * @param  string  $content  HTML or Blade-like string
 		 * @return string  Rendered output
 		 */
 		public static function renderComponents(string $content): string
 		{
-			// Match: <x-component ...> ... </x-component>
-			$pattern = '/<x-component\s+([^>]+)>(.*?)<\/x-component>/is';
+			// Match: <x-template ...> ... </x-template>
+			$pattern = '/<x-template\s+([^>]+)>(.*?)<\/x-template>/is';
 
 			return preg_replace_callback($pattern, function ($matches) {
 				$rawAttributes = $matches[1] ?? '';
@@ -39,7 +39,11 @@
 					Blade::load($attributes['src'], $data);
 					return ob_get_clean();
 				} catch (Throwable $e) {
-					return "<!-- ⚠️ Component render failed: {$e->getMessage()} -->";
+					if (defined('DEVELOPMENT') && DEVELOPMENT) {
+						return "<!-- ⚠️ Template render failed: " . htmlspecialchars($e->getMessage(), ENT_QUOTES) . " -->";
+					}
+
+					return "<!-- Template render failed. -->";
 				}
 			}, $content);
 		}
