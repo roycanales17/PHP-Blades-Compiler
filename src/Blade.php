@@ -289,8 +289,11 @@
 		 * @return string The compiled result.
 		 * @throws CompilerException
 		 */
-		public function render(string $content): string {
+		public function render(string $content, string $tracePath = ''): string {
 			ob_start();
+			if ($tracePath) {
+				self::$tracePaths[] = $tracePath;
+			}
 			self::capture(self::compile($content));
 			return ob_get_clean();
 		}

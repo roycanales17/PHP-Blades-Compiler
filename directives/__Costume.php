@@ -45,7 +45,7 @@
 			foreach ($candidatePaths as $path) {
 				if (file_exists($path)) {
 					$recentPath[] = $path;
-					return $blade->render(file_get_contents($path));
+					return $blade->render(file_get_contents($path), $path);
 				}
 			}
 
