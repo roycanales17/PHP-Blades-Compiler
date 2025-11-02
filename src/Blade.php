@@ -190,7 +190,7 @@
 				$errorTrace = $errorTraces;
 				$errorLogsHtml = '';
 
-				// Resolve the file line accurately
+				// --- Resolve the file line accurately ---
 				foreach ($errorTrace['traces'] as $trace) {
 					if (($trace['file'] ?? '') == $tempFile) {
 						$errorTrace['line'] = $trace['line'];
@@ -198,6 +198,57 @@
 					}
 				}
 
+				// --- Resolve the logical line number considering nested markers ---
+				if ($content) {
+					$rawLines = explode("\n", $content);
+					$logicalLine = 0;
+					$physicalLine = 0;
+					$targetLine = $errorTrace['line'] ?? 0;
+					$markerDepth = 0;
+					$markerCounted = false;
+
+					foreach ($rawLines as $line) {
+						$physicalLine++;
+
+						if ($physicalLine >= $targetLine) {
+							break;
+						}
+
+						// Detect both HTML or PHP marker formats
+						$isOpenMarker  = str_contains($line, '<!-- open_tag marker -->') || str_contains($line, 'open_tag marker');
+						$isCloseMarker = str_contains($line, '<!-- close_tag marker -->') || str_contains($line, 'close_tag marker');
+
+						if ($isOpenMarker) {
+							if ($markerDepth === 0 && !$markerCounted) {
+								$logicalLine++; // count this marker block as one
+								$markerCounted = true;
+							}
+							$markerDepth++;
+							continue;
+						}
+
+						if ($isCloseMarker) {
+							if ($markerDepth > 0) {
+								$markerDepth--;
+								if ($markerDepth === 0) {
+									$markerCounted = false; // ready for next block
+								}
+							}
+							continue;
+						}
+
+						// Only count lines outside marker blocks
+						if ($markerDepth === 0) {
+							$logicalLine++;
+						}
+					}
+
+					if ($logicalLine) {
+						$errorTrace['line'] = $logicalLine + 1;
+					}
+				}
+
+				// --- Build the error logs HTML ---
 				foreach ($errorTrace['traces'] as $i => $log) {
 					if (isset($log['function'])) {
 						$call = ($log['class'] ?? '') . ($log['type'] ?? '') . $log['function'] . '()';
@@ -215,22 +266,21 @@
 					$errorLogsHtml .= <<<HTML
                     <hr />
                     <strong>Error Trace #{$i}:</strong><br>
-                    Call: $call<br>
-                    File: $file<br>
-                    Line: $line<br>
+                    Call: {$call}<br>
+                    File: {$file}<br>
+                    Line: {$line}<br>
                     HTML;
 				}
 
-
-				// Final UI output
+				// --- Final UI output ---
 				$uiError = <<<HTML
-				<div style="padding:1rem; background:#fff3f3; border:1px solid #ffcccc; color:#a00; font-family:monospace;">
-					<strong>Main Error:</strong> {$errorTrace['message']}<br>
-					<strong>File:</strong> {$errorTrace['path']}<br>
-					<strong>Line:</strong> {$errorTrace['line']}<br>
-					{$errorLogsHtml}
-				</div>
-				HTML;
+                <div style="padding:1rem; background:#fff3f3; border:1px solid #ffcccc; color:#a00; font-family:monospace;">
+                    <strong>Main Error:</strong> {$errorTrace['message']}<br>
+                    <strong>File:</strong> {$errorTrace['path']}<br>
+                    <strong>Line:</strong> {$errorTrace['line']}<br>
+                    {$errorLogsHtml}
+                </div>
+                HTML;
 
 				$reported = true;
 				throw new CompilerException($uiError);

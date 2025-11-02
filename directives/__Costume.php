@@ -19,21 +19,21 @@
 
 		$blade->directive('extends', function ($expression) use ($blade) {
 			static $recentPath = [];
+			static $markerLines = 0;
 
 			$expression = trim($expression);
-			if ($expression === '')
-				return '';
+			if ($expression === '') return '';
 
 			$expression = str_replace('.', '/', $expression);
-			$template = preg_replace('/^["\']|["\']$/', '', trim($expression ,' '));
+			$template = preg_replace('/^["\']|["\']$/', '', trim($expression, ' '));
 			$basePath = $blade->getProjectRootPath('/views/');
 
 			if (!is_dir($basePath))
 				$basePath = $blade->getProjectRootPath();
 
 			$fullPath = $basePath . $template;
-
 			$candidatePaths = [];
+
 			if (pathinfo($fullPath, PATHINFO_EXTENSION)) {
 				$candidatePaths[] = $fullPath;
 			} else {
@@ -45,7 +45,13 @@
 			foreach ($candidatePaths as $path) {
 				if (file_exists($path)) {
 					$recentPath[] = $path;
-					return $blade->render(file_get_contents($path), $path);
+					$content = file_get_contents($path);
+					$rendered = $blade->render($content, $path);
+					return <<<HTML
+                    <?php /* open_tag marker */ ?>
+                    $rendered
+                    <?php /* close_tag marker */ ?>
+                    HTML;
 				}
 			}
 
