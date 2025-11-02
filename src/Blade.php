@@ -291,10 +291,21 @@
 		 */
 		public function render(string $content, string $tracePath = ''): string {
 			ob_start();
+
 			if ($tracePath) {
 				self::$tracePaths[] = $tracePath;
+				$index = array_key_last(self::$tracePaths);
 			}
+
 			self::capture(self::compile($content));
+
+			if ($tracePath) {
+				if (isset(self::$tracePaths[$index]) && self::$tracePaths[$index] === $tracePath) {
+					unset(self::$tracePaths[$index]);
+					self::$tracePaths = array_values(self::$tracePaths);
+				}
+			}
+
 			return ob_get_clean();
 		}
 
