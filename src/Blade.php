@@ -98,19 +98,33 @@
 			}
 		}
 
+		/**
+		 * Check if a path exists, case-insensitive on Linux
+		 */
 		private static function fileExistsCaseInsensitive(string $path): bool {
-			$dir  = dirname($path);
-			$file = basename($path);
+			$parts = explode('/', trim($path, '/'));
+			$current = '/'; // Start from root
 
-			if (!is_dir($dir)) return false;
+			foreach ($parts as $part) {
+				if (!is_dir($current) && !file_exists($current)) {
+					return false;
+				}
 
-			foreach (scandir($dir) as $f) {
-				if (strcasecmp($f, $file) === 0) {
-					return true;
+				$found = false;
+				foreach (scandir($current) as $f) {
+					if (strcasecmp($f, $part) === 0) {
+						$current = rtrim($current, '/') . '/' . $f;
+						$found = true;
+						break;
+					}
+				}
+
+				if (!$found) {
+					return false;
 				}
 			}
 
-			return false;
+			return true;
 		}
 
 		/**
