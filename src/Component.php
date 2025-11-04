@@ -2,63 +2,133 @@
 
 	namespace App\View\Compilers;
 
-	use Error;
 	use Throwable;
+	use Error;
 
+	/**
+	 * Class Component
+	 *
+	 * A lightweight Blade-like component compiler that processes custom <x-*> tags in HTML templates.
+	 * It allows developers to define reusable view components similar to Laravel Blade components.
+	 *
+	 * Features:
+	 * - Supports both standard (<x-card>...</x-card>) and self-closing (<x-icon ... />) components
+	 * - Allows nested components (components within components)
+	 * - Converts component tag names to their corresponding .blade.php file paths
+	 * - Automatically passes attributes and slot content to the rendered component
+	 * - Supports error-safe rendering and optional development debugging
+	 *
+	 * Example:
+	 * ```html
+	 * <x-card title="Welcome">
+	 *     <x-button text="Click Me" />
+	 * </x-card>
+	 * ```
+	 *
+	 * This will look for:
+	 * - views/card.blade.php
+	 * - views/button.blade.php
+	 *
+	 * and render them recursively with proper attribute and slot handling.
+	 */
 	final class Component
 	{
 		/**
-		 * Parses custom <x-template> tags in HTML and replaces them with rendered views.
+		 * Parses and renders all custom <x-*> components within the given HTML or Blade-like string.
 		 *
-		 * @param  string  $content  HTML or Blade-like string
-		 * @return string  Rendered output
+		 * This function:
+		 * 1. Detects both self-closing and paired <x-*> tags.
+		 * 2. Recursively renders nested components.
+		 * 3. Converts component names (like `x-utils.modal`) to proper view file paths (`views/utils/modal.blade.php`).
+		 * 4. Loads and renders the component using the Blade::load() engine.
+		 *
+		 * @param  string  $content
+		 *         The raw HTML or Blade content containing <x-*> component tags.
+		 *
+		 * @return string
+		 *         The fully rendered HTML with all components replaced by their rendered views.
 		 */
 		public static function renderComponents(string $content): string
 		{
-			// Match: <x-template ...> ... </x-template>
-			$pattern = '/<x-template\s+([^>]+)>(.*?)<\/x-template>/is';
+			// Match both: <x-name>...</x-name> and self-closing <x-name ... />
+			$pattern = '/<x-([\w\.\-\/]+)([^>]*)>(.*?)<\/x-\1>|<x-([\w\.\-\/]+)([^>]*)\/>/is';
 
-			return preg_replace_callback($pattern, function ($matches) {
-				$rawAttributes = $matches[1] ?? '';
-				$innerContent  = trim($matches[2] ?? '');
+			// Repeat until no more components are found (to handle nested components)
+			while (preg_match($pattern, $content)) {
+				$content = preg_replace_callback($pattern, function ($matches) {
+					// Detect component type (normal vs self-closing)
+					$component = $matches[1] ?: $matches[4];
+					$rawAttributes = $matches[2] ?: $matches[5];
+					$inner = $matches[3] ?? '';
 
-				$attributes = self::parseAttributes($rawAttributes);
+					// Parse attributes into associative array
+					$attributes = self::parseAttributes(trim($rawAttributes));
 
-				// Support required `src`
-				if (empty($attributes['src'])) {
-					return "<!-- ⚠️ Missing 'src' attribute in component -->";
-				}
-
-				// Render using your existing Blade-like view() helper
-				$data = array_merge($attributes, [
-					'content' => $innerContent,
-				]);
-
-				try {
-					// Execute the component rendering immediately
-					ob_start();
-					$src = "../views/" . ltrim($attributes['src'], '/');
-					$src = pathinfo($src, PATHINFO_DIRNAME) . '/' . pathinfo($src, PATHINFO_FILENAME) . '.blade.php';
-					Blade::load($src, $data);
-					return ob_get_clean();
-				} catch (Throwable | Error $e) {
-					if (defined('DEVELOPMENT') && DEVELOPMENT) {
-						return "<!-- ⚠️ Template render failed: " . htmlspecialchars($e->getMessage(), ENT_QUOTES) . " -->";
+					// Convert dotted or slashed component names to file paths
+					$path = str_replace(['.', '\\'], '/', $component);
+					if (function_exists('base_path')) {
+						$file = base_path("/views/{$path}.blade.php");
+					} else {
+						$file = "../views/{$path}.blade.php";
 					}
 
-					return "<!-- Template render failed. -->";
-				}
-			}, $content);
+					// If component file does not exist, show debug comment (if DEVELOPMENT)
+					if (!file_exists($file)) {
+						if (defined('DEVELOPMENT') && DEVELOPMENT) {
+							return "<!-- ⚠️ X-Component not found: {$component} -->";
+						}
+						return "";
+					}
+
+					try {
+						// Recursively render nested components inside the inner content
+						if (strpos($inner, '<x-') !== false) {
+							$inner = self::renderComponents($inner);
+						}
+
+						// Capture and render the component output
+						ob_start();
+						Blade::load($file, array_merge($attributes, ['slot' => $inner]));
+						return ob_get_clean();
+					} catch (Throwable | Error $e) {
+						// Handle rendering errors gracefully
+						if (defined('DEVELOPMENT') && DEVELOPMENT) {
+							return "<!-- ⚠️ Failed to render component '{$component}': "
+								. htmlspecialchars($e->getMessage(), ENT_QUOTES) . " -->";
+						}
+						return "";
+					}
+				}, $content);
+			}
+
+			return $content;
 		}
 
 		/**
-		 * Converts raw attribute string into an associative array.
+		 * Converts a raw HTML attribute string into an associative PHP array.
 		 *
-		 * Example: src="portfolio/utils/modal" identifier="loginModel"
-		 *  → ['src' => 'portfolio/utils/modal', 'identifier' => 'loginModel']
+		 * Example:
+		 * ```php
+		 * parseAttributes('title="Welcome" id="main" visible="true"');
+		 * // Returns: ['title' => 'Welcome', 'id' => 'main', 'visible' => 'true']
+		 * ```
+		 *
+		 * Includes a simple static cache for repeated attributes to improve performance.
+		 *
+		 * @param  string  $raw
+		 *         The raw attribute string (e.g., `title="Welcome" id="main"`).
+		 *
+		 * @return array<string, string>
+		 *         An associative array of attribute key-value pairs.
 		 */
 		protected static function parseAttributes(string $raw): array
 		{
+			static $cache = []; // Cache identical attribute sets
+
+			if (isset($cache[$raw])) {
+				return $cache[$raw];
+			}
+
 			$attributes = [];
 			$pattern = '/(\w+)\s*=\s*"([^"]*)"/';
 
@@ -68,6 +138,7 @@
 				}
 			}
 
-			return $attributes;
+			// Store result in cache for reuse
+			return $cache[$raw] = $attributes;
 		}
 	}
