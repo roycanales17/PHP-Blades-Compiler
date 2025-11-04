@@ -98,6 +98,21 @@
 			}
 		}
 
+		private static function fileExistsCaseInsensitive(string $path): bool {
+			$dir  = dirname($path);
+			$file = basename($path);
+
+			if (!is_dir($dir)) return false;
+
+			foreach (scandir($dir) as $f) {
+				if (strcasecmp($f, $file) === 0) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		/**
 		 * Loads and compiles a view template from the specified file path,
 		 * then captures and renders it with the provided data.
@@ -110,7 +125,7 @@
 		 * @throws CompilerException If the file does not exist or if there is a compilation or rendering error.
 		 */
 		public static function load(string $path, array $extract = []): void {
-			if (!file_exists($path))
+			if (!self::fileExistsCaseInsensitive($path))
 				throw new CompilerException("File $path does not exist");
 
 			self::$tracePaths[] = $path;
