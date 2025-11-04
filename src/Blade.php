@@ -101,13 +101,13 @@
 		/**
 		 * Check if a path exists, case-insensitive on Linux
 		 */
-		private static function fileExistsCaseInsensitive(string $path): bool {
+		private static function resolveCaseInsensitivePath(string $path): ?string {
 			$parts = explode('/', trim($path, '/'));
-			$current = '/'; // Start from root
+			$current = '/';
 
 			foreach ($parts as $part) {
 				if (!is_dir($current) && !file_exists($current)) {
-					return false;
+					return null;
 				}
 
 				$found = false;
@@ -120,11 +120,11 @@
 				}
 
 				if (!$found) {
-					return false;
+					return null;
 				}
 			}
 
-			return true;
+			return $current;
 		}
 
 		/**
@@ -139,10 +139,14 @@
 		 * @throws CompilerException If the file does not exist or if there is a compilation or rendering error.
 		 */
 		public static function load(string $path, array $extract = []): void {
-			if (!self::fileExistsCaseInsensitive($path))
-				throw new CompilerException("File $path does not exist");
+			$realPath = self::resolveCaseInsensitivePath($path);
 
-			self::$tracePaths[] = $path;
+			if (!$realPath) {
+				throw new CompilerException("File $path does not exist");
+			}
+
+			self::$tracePaths[] = $realPath;
+
 			$isAssociativeArray = function(array $arr): bool {
 				foreach (array_keys($arr) as $key) {
 					if (is_string($key)) return true;
@@ -150,10 +154,11 @@
 				return false;
 			};
 
-			if ($extract && !$isAssociativeArray($extract))
+			if ($extract && !$isAssociativeArray($extract)) {
 				throw new CompilerException("Invalid data passed for extraction: " . json_encode($extract));
+			}
 
-			self::capture(self::compile(file_get_contents($path), $extract));
+			self::capture(self::compile(file_get_contents($realPath), $extract));
 		}
 
 		/**
