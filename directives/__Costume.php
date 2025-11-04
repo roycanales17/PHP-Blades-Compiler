@@ -60,7 +60,7 @@
 			$template = preg_replace('/^["\']|["\']$/', '', trim($expression, ' '));
 
 			if (function_exists('base_path')) {
-				$basePath = base_path('/views');
+				$basePath = base_path('/views/');
 			} else {
 				$basePath = $blade->getProjectRootPath('views/');
 			}
