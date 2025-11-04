@@ -360,40 +360,6 @@
 		}
 
 		/**
-		 * Attempts to resolve and throw a clearer error message based on the trace.
-		 *
-		 * @param array $traces The stack trace array from an exception.
-		 * @param array $attr Additional attributes, such as 'template' and 'resolvedPath'.
-		 *
-		 * @throws CompilerException
-		 */
-		public function resolveError(array $traces, array $attr): void {
-			$stop = false;
-			$resolvedPath = $attr['resolvedPath'] ?? '';
-			$template = $attr['template'] ?? '';
-
-			if (!$resolvedPath) {
-				foreach ($traces as $trace) {
-					$file = $trace['file'] ?? '';
-					$file = explode(DIRECTORY_SEPARATOR, $file);
-					$file = array_pop($file);
-
-					if ($stop) {
-						$resolvedPath = $trace['args'][0] ?? '';
-						break;
-					}
-
-					if (in_array($file, ['Blade.php', 'Component.php']) && ($trace['function'] ?? '') === 'compile') {
-						$stop = true;
-					}
-				}
-			}
-
-			$title = ucfirst($template);
-			throw new CompilerException("`$title` path not found from $resolvedPath");
-		}
-
-		/**
 		 * Resolves the root path of the project.
 		 * Falls back to dirname(__DIR__) if not installed via Composer.
 		 *
@@ -402,7 +368,7 @@
 		 */
 		public function getProjectRootPath(string $path = ''): string {
 			if ($path) {
-				$path = "/" . ltrim($path, '/');
+				$path = ltrim($path, '/');
 			}
 
 			$vendorPos = strpos(__DIR__, 'vendor');

@@ -52,15 +52,18 @@
 		$blade->directive('include', function ($expression) use ($blade) {
 			static $recentPath = [];
 
+			$orig_expression = $expression;
 			$expression = trim($expression);
 			if ($expression === '') return '';
 
 			$expression = str_replace('.', '/', $expression);
 			$template = preg_replace('/^["\']|["\']$/', '', trim($expression, ' '));
-			$basePath = $blade->getProjectRootPath('/views/');
 
-			if (!is_dir($basePath))
-				$basePath = $blade->getProjectRootPath();
+			if (function_exists('base_path')) {
+				$basePath = base_path('/views');
+			} else {
+				$basePath = $blade->getProjectRootPath('views/');
+			}
 
 			$fullPath = $basePath . $template;
 			$candidatePaths = [];
@@ -86,16 +89,6 @@
 				}
 			}
 
-			$resolvedPath = '';
-			if ($recentPath) {
-				$resolvedPath = $recentPath[count($recentPath) - 1];
-			}
-
-			$blade->resolveError(debug_backtrace(), [
-				'expression' => $expression,
-				'candidatePaths' => $candidatePaths,
-				'resolvedPath' => $resolvedPath,
-				'template' => 'include'
-			]);
+			throw new Exception("Template path `$fullPath` is not exist. Original Path: $orig_expression");
 		});
 	});
