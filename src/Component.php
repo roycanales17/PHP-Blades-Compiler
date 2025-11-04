@@ -80,24 +80,15 @@
 						return "";
 					}
 
-					try {
-						// Recursively render nested components inside the inner content
-						if (strpos($inner, '<x-') !== false) {
-							$inner = self::renderComponents($inner);
-						}
-
-						// Capture and render the component output
-						ob_start();
-						Blade::load($file, array_merge($attributes, ['slot' => $inner]));
-						return ob_get_clean();
-					} catch (Throwable | Error $e) {
-						// Handle rendering errors gracefully
-						if (defined('DEVELOPMENT') && DEVELOPMENT) {
-							return "<!-- ⚠️ Failed to render component '{$component}': "
-								. htmlspecialchars($e->getMessage(), ENT_QUOTES) . " -->";
-						}
-						return "";
+					// Recursively render nested components inside the inner content
+					if (strpos($inner, '<x-') !== false) {
+						$inner = self::renderComponents($inner);
 					}
+
+					// Capture and render the component output
+					ob_start();
+					Blade::load($file, array_merge($attributes, ['slot' => $inner]));
+					return ob_get_clean();
 				}, $content);
 			}
 
