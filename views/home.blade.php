@@ -3,7 +3,7 @@
 	<title>Test page</title>
 </head>
 <body>
-    @extends('header')
+    @include('header')
 
     <h1>{{ 'Hello World!' }}</h1>
     <p>This is a testing content!</p>
@@ -14,6 +14,6 @@
         @endforeach
     </ul>
 
-    @extends('footer')
+    @include('footer')
 </body>
 </html>

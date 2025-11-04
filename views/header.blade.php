@@ -1,2 +1,2 @@
-@extends('navbar')
+@include('navbar')
 This is header
