@@ -36,6 +36,8 @@
 		 */
 		private static array $tracePaths = [];
 
+		private static array $templateTracePath = [];
+
 		/**
 		 * Instantiates a Blade engine instance with the given compiler.
 		 *
@@ -190,7 +192,11 @@
 				$__resolvedPath = '';
 
 				(static function () use ($tempFile, $data, &$__resolvedPath) {
-					$__resolvedPath = self::$tracePaths[count(self::$tracePaths) - 1] ?? $tempFile;
+					if (self::$templateTracePath) {
+						$__resolvedPath = self::$templateTracePath[count(self::$templateTracePath) - 1] ?? $tempFile;
+					} else {
+						$__resolvedPath = self::$tracePaths[count(self::$tracePaths) - 1] ?? $tempFile;
+					}
 					if (isset($_SESSION)) {
 						$_SESSION['__flash']['__resolved_path__'] = $__resolvedPath;
 					}
@@ -378,20 +384,26 @@
 		 * @return string The compiled result.
 		 * @throws CompilerException
 		 */
-		public function render(string $content, string $tracePath = ''): string {
+		public function render(string $content, string $tracePath = '', bool $templatePath = false): string {
 			ob_start();
 
+			// Choose which trace array to use
+			$traceArray = $templatePath ? 'templateTracePath' : 'tracePaths';
+
+			// Add trace path if provided
 			if ($tracePath) {
-				self::$tracePaths[] = $tracePath;
-				$index = array_key_last(self::$tracePaths);
+				self::${$traceArray}[] = $tracePath;
+				$index = array_key_last(self::${$traceArray});
 			}
 
+			// Capture compiled content
 			self::capture(self::compile($content));
 
-			if ($tracePath) {
-				if (isset(self::$tracePaths[$index]) && self::$tracePaths[$index] === $tracePath) {
-					unset(self::$tracePaths[$index]);
-					self::$tracePaths = array_values(self::$tracePaths);
+			// Remove the trace path if added
+			if ($tracePath && isset($index)) {
+				if (isset(self::${$traceArray}[$index]) && self::${$traceArray}[$index] === $tracePath) {
+					unset(self::${$traceArray}[$index]);
+					self::${$traceArray} = array_values(self::${$traceArray});
 				}
 			}
 

@@ -19,7 +19,12 @@
 
 		$blade->directive('yield', function ($expression) use($blade) {
 			$expression = trim($expression, '\'"');
-			return $blade->render($GLOBALS['__BLADE_YIELD__'][$expression] ?? '');
+			$content = $blade->render($GLOBALS['__BLADE_YIELD__'][$expression] ?? '');
+			return <<<PHP
+            <?php /* open_tag marker */ ?>
+            $content
+            <?php /* close_tag marker */ ?>
+            PHP;
 		}, 1);
 
 		$blade->directive('include', function ($expression) use ($blade) {
@@ -89,7 +94,7 @@
 			foreach ($candidatePaths as $templatePath) {
 				if (file_exists($templatePath)) {
 					$templateContent = file_get_contents($templatePath);
-					return $blade->render($templateContent);
+					return $blade->render($templateContent, $templatePath, true);
 				}
 			}
 
