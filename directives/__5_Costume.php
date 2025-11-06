@@ -18,6 +18,7 @@
 		});
 
 		$blade->directive('yield', function ($expression) {
+			$expression = trim($expression, '\'"');
 			return $GLOBALS['__BLADE_YIELD__'][$expression] ?? '';
 		}, 1);
 
