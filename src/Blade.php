@@ -348,10 +348,11 @@
 		 *
 		 * @param string $directive Name of the directive.
 		 * @param Closure $callback Directive callback function.
+		 * @param int $sequence
 		 * @return void
 		 */
-		public function directive(string $directive, Closure $callback): void {
-			$this->compiler->directive($directive, $callback);
+		public function directive(string $directive, Closure $callback, int $sequence = 0): void {
+			$this->compiler->directive($directive, $callback, $sequence);
 		}
 
 		/**
@@ -360,10 +361,11 @@
 		 * @param string $prefix Starting tag or symbol.
 		 * @param string $suffix Ending tag or symbol.
 		 * @param Closure $callback Callback that defines the behavior between the wrap.
+		 * @param bool $requireParams
 		 * @return void
 		 */
-		public function wrap(string $prefix, string $suffix, Closure $callback): void {
-			$this->compiler->wrap($prefix, $suffix, $callback);
+		public function wrap(string $prefix, string $suffix, Closure $callback, bool $requireParams = false): void {
+			$this->compiler->wrap($prefix, $suffix, $callback, $requireParams);
 		}
 
 		/**

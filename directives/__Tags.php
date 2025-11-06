@@ -20,4 +20,13 @@
 		$blade->wrap('@php', '@endphp', function ($expression) {
 			return "<?php $expression ?>";
 		});
+
+		$blade->wrap('@section', '@endsection', function ($expression, $param) {
+			if (!isset($GLOBALS['__BLADE_YIELD__'])) {
+				$GLOBALS['__BLADE_YIELD__'] = [];
+			}
+
+			$GLOBALS['__BLADE_YIELD__'][$param] =  $expression;
+			return "";
+		});
 	});

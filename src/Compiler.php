@@ -17,21 +17,30 @@
 		private string $content = '';
 		private array $wrapper = [];
 		private array $directives = [];
+		private array $sequence = [];
 
 		/**
 		 * Registers a new directive with its corresponding callback.
 		 *
 		 * @param string $directive
 		 * @param Closure $callback
+		 * @param int $sequence
 		 * @return void
 		 * @throws CompilerException If the directive name is empty.
 		 */
-		public function directive(string $directive, Closure $callback): void {
+		public function directive(string $directive, Closure $callback, int $sequence = 0): void {
 			if (!$directive) {
 				throw new CompilerException("Directive is required");
 			}
 
-			$this->directives[$directive] = $callback;
+			if (!$sequence) {
+				$this->directives[$directive] = $callback;
+			} else {
+				$this->sequence[$sequence] = [
+					'directive' => $directive,
+					'callback' => $callback,
+				];
+			}
 		}
 
 		/**
@@ -43,7 +52,7 @@
 		 * @return void
 		 * @throws CompilerException If prefix or suffix is missing.
 		 */
-		public function wrap(string $prefix, string $suffix, Closure $callback): void {
+		public function wrap(string $prefix, string $suffix, Closure $callback, bool $requireParams = false): void {
 			if (!$prefix || !$suffix) {
 				throw CompilerException::invalidWrapper('both prefix and suffix.');
 			}
@@ -52,6 +61,7 @@
 				'prefix' => $prefix,
 				'suffix' => $suffix,
 				'callback' => $callback,
+				'require_params' => $requireParams
 			];
 		}
 
@@ -67,7 +77,7 @@
 				$wrapper->prefix($tag['prefix']);
 				$wrapper->suffix($tag['suffix']);
 				$wrapper->callback($tag['callback']);
-				$this->content = $wrapper->build();
+				$this->content = $wrapper->build($tag['require_params']);
 			}
 		}
 
@@ -87,6 +97,25 @@
 		}
 
 		/**
+		 * This compiles via sequence for proper blades renders.
+		 *
+		 * @throws CompilerException
+		 * @throws ReflectionException
+		 */
+		private function compileSequenceStandards(): void
+		{
+			foreach ($this->sequence as $attr) {
+				$directive = $attr['directive'];
+				$callback = $attr['callback'];
+
+				$directiveHandler = new Directive($this->content);
+				$directiveHandler->directive($directive);
+				$directiveHandler->callback($callback);
+				$this->content = $directiveHandler->build();
+			}
+		}
+
+		/**
 		 * Compiles the given content by applying all wrappers and directives.
 		 *
 		 * @deprecated Do not use this function,
@@ -97,7 +126,10 @@
 		public function compile(string $content): string {
 			$this->content = $content;
 
-			// Sort, prioritizing longer strings first.
+			// Sorting
+			$this->sequence = array_values($this->sequence);
+
+			// prioritizing longer strings first.
 			usort($this->wrapper, fn($a, $b) => strlen($b['prefix']) - strlen($a['prefix']));
 			uksort($this->directives, fn($k1, $k2) => strlen($k2) - strlen($k1));
 
@@ -107,6 +139,7 @@
 			} else {
 				$this->compileWrapper();
 				$this->compileStandards();
+				$this->compileSequenceStandards();
 			}
 
 			// Return the result

@@ -64,11 +64,14 @@
 		/**
 		 * Starts to compile tags directives.
 		 *
+		 * @param bool $requireParam
 		 * @return string
 		 */
-		public function build(): string {
+		public function build(bool $requireParam = false): string {
 			if (!$this->content)
 				return '';
+
+			// Todo: look for `(expression)` if require param is enable
 
 			$offset = 0;
 			$pattern = '/' . preg_quote($this->prefix, '/') . '(.*?)' . preg_quote($this->suffix, '/') . '/s';

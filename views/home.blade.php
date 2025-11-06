@@ -1,10 +1,6 @@
-<html lang="en">
-<head>
-	<title>Test page</title>
-</head>
-<body>
-    @include('header')
+@extends('template')
 
+@section('container')
     <h1>{{ 'Hello World!' }}</h1>
     <p>This is a testing content!</p>
 
@@ -13,7 +9,4 @@
             <li>{{ $test }}</li>
         @endforeach
     </ul>
-
-    @include('footer')
-</body>
-</html>
+@endsection

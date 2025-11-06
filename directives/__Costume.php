@@ -17,37 +17,9 @@
 			return "<?= json_encode($expression) ?>";
 		});
 
-		$blade->directive('extends', function ($expression) use($blade) {
-			throw new Exception("Extend blade feature is not available yet.");
-
-			$expression = trim($expression);
-			if ($expression === '') return '';
-
-			$orig_expression = $expression;
-			$expression = ltrim($expression, '/');
-			$expression = str_replace('.', '/', $expression);
-			$templatePath = preg_replace('/^["\']|["\']$/', '', $expression);
-			$basePath = $blade->getProjectRootPath('/views/');
-
-			$candidatePaths = [];
-			$fullPath = $basePath . $templatePath;
-
-			if (pathinfo($fullPath, PATHINFO_EXTENSION)) {
-				$candidatePaths[] = $fullPath;
-			} else {
-				$candidatePaths[] = $fullPath . '.blade.php';
-				$candidatePaths[] = $fullPath . '.php';
-				$candidatePaths[] = $fullPath . '.html';
-			}
-
-			foreach ($candidatePaths as $path) {
-				if (file_exists($path)) {
-					// Todo: Handle the content template path...
-				}
-			}
-
-			throw new Exception("Template path `$fullPath` is not exist. Original Path: $orig_expression");
-		});
+		$blade->directive('yield', function ($expression) {
+			return $GLOBALS['__BLADE_YIELD__'][$expression] ?? '';
+		}, 1);
 
 		$blade->directive('include', function ($expression) use ($blade) {
 			static $recentPath = [];
@@ -91,4 +63,35 @@
 
 			throw new Exception("Template path `$fullPath` is not exist. Original Path: $orig_expression");
 		});
+
+		$blade->directive('extends', function ($expression) use($blade) {
+			$expression = trim($expression);
+			if ($expression === '') return '';
+
+			$orig_expression = $expression;
+			$expression = ltrim($expression, '/');
+			$expression = str_replace('.', '/', $expression);
+			$templatePath = preg_replace('/^["\']|["\']$/', '', $expression);
+			$basePath = $blade->getProjectRootPath('/views/');
+
+			$candidatePaths = [];
+			$fullPath = $basePath . $templatePath;
+
+			if (pathinfo($fullPath, PATHINFO_EXTENSION)) {
+				$candidatePaths[] = $fullPath;
+			} else {
+				$candidatePaths[] = $fullPath . '.blade.php';
+				$candidatePaths[] = $fullPath . '.php';
+				$candidatePaths[] = $fullPath . '.html';
+			}
+
+			foreach ($candidatePaths as $templatePath) {
+				if (file_exists($templatePath)) {
+					$templateContent = file_get_contents($templatePath);
+					return $blade->render($templateContent, $templatePath);
+				}
+			}
+
+			throw new Exception("Template path `$fullPath` is not exist. Original Path: $orig_expression");
+		}, 2);
 	});
