@@ -71,15 +71,34 @@
 			if (!$this->content)
 				return '';
 
-			// Todo: look for `(expression)` if require param is enable
-
 			$offset = 0;
-			$pattern = '/' . preg_quote($this->prefix, '/') . '(.*?)' . preg_quote($this->suffix, '/') . '/s';
 			$this->protectedRanges = [];
+
+			if ($requireParam) {
+				$pattern = '/'
+					. preg_quote($this->prefix, '/')
+					. '\s*\(\s*([\'"])(.*?)\1\s*\)'
+					. '(.*?)'
+					. preg_quote($this->suffix, '/')
+					. '/s';
+			} else {
+				$pattern = '/'
+					. preg_quote($this->prefix, '/')
+					. '(.*?)'
+					. preg_quote($this->suffix, '/')
+					. '/s';
+			}
 
 			$this->content = preg_replace_callback($pattern, function ($matches) use (&$offset, $requireParam) {
 				$fullMatch = $matches[0];
-				$expression = $matches[1];
+				$param = '';
+
+				if ($requireParam) {
+					$param = trim($matches[2]);
+					$expression = $matches[3];
+				} else {
+					$expression = $matches[1];
+				}
 
 				$start = strpos($this->content, $fullMatch, $offset);
 				if ($start === false) {
@@ -96,7 +115,7 @@
 				$this->protectedRanges[] = [$start, $end];
 				$callback = $this->template;
 
-				return $callback($expression, $requireParam ? 'test' : '');
+				return $callback($expression, $param);
 			}, $this->content);
 
 			return $this->content;

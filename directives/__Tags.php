@@ -28,5 +28,5 @@
 
 			$GLOBALS['__BLADE_YIELD__'][$param] =  $expression;
 			return "";
-		});
+		}, true);
 	});
