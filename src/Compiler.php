@@ -15,9 +15,9 @@
 	abstract class Compiler implements ViewsInterface
 	{
 		private string $content = '';
-		private array $wrapper = [];
-		private array $directives = [];
-		private array $sequence = [];
+		protected array $wrapper = [];
+		protected array $directives = [];
+		protected array $sequence = [];
 
 		/**
 		 * Registers a new directive with its corresponding callback.
@@ -176,7 +176,7 @@
 		 *
 		 * @return array The list of registered wrappers.
 		 */
-		protected function getWrapper(): array {
+		public function getWrapper(): array {
 			return $this->wrapper;
 		}
 
@@ -188,7 +188,16 @@
 		 *
 		 * @return array The list of registered directives.
 		 */
-		protected function getDirectives(): array {
+		public function getDirectives(): array {
 			return $this->directives;
+		}
+
+		/**
+		 * Retrieves all registered sequence standard directives.
+		 *
+		 * @return array
+		 */
+		public function getSequence(): array {
+			return $this->sequence;
 		}
 	}

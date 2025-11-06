@@ -7,6 +7,7 @@
 	use Exception;
 	use Closure;
 	use Error;
+	use ReflectionException;
 
 	/**
 	 * The Blade class provides a lightweight template engine with support
@@ -54,7 +55,7 @@
 		 * @param array $extract An associative array of data variables to extract into the view.
 		 * @return string The compiled output.
 		 *
-		 * @throws CompilerException
+		 * @throws CompilerException|ReflectionException
 		 */
 		public static function compile(string $content, array $extract = []): string {
 			$isAssociativeArray = function(array $arr): bool {
@@ -70,13 +71,15 @@
 			if (empty(self::$instances))
 				self::loadDirectives(__DIR__ . '/../directives');
 
-			ob_start();
+			$buffer = new Buffer();
 			foreach (self::$instances as $compiler) {
-				/** @var ViewsInterface $compiler */
-				$content = $compiler->compile($content);
+				$buffer->registerWrap($compiler->getWrapper());
+				$buffer->registerDirectives($compiler->getDirectives());
+				$buffer->registerSequences($compiler->getSequence());
 			}
 
-			self::capture($content, $extract);
+			ob_start();
+			self::capture($buffer->compile($content), $extract);
 			return ob_get_clean();
 		}
 
