@@ -89,7 +89,7 @@
 			foreach ($candidatePaths as $templatePath) {
 				if (file_exists($templatePath)) {
 					$templateContent = file_get_contents($templatePath);
-					return $blade->render($templateContent, $templatePath);
+					return $blade->render($templateContent);
 				}
 			}
 
