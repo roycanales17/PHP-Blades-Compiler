@@ -77,7 +77,7 @@
 			$pattern = '/' . preg_quote($this->prefix, '/') . '(.*?)' . preg_quote($this->suffix, '/') . '/s';
 			$this->protectedRanges = [];
 
-			$this->content = preg_replace_callback($pattern, function ($matches) use (&$offset) {
+			$this->content = preg_replace_callback($pattern, function ($matches) use (&$offset, $requireParam) {
 				$fullMatch = $matches[0];
 				$expression = $matches[1];
 
@@ -96,7 +96,7 @@
 				$this->protectedRanges[] = [$start, $end];
 				$callback = $this->template;
 
-				return $callback($expression);
+				return $callback($expression, $requireParam ? 'test' : '');
 			}, $this->content);
 
 			return $this->content;
