@@ -77,8 +77,8 @@
 			if ($requireParam) {
 				$pattern = '/'
 					. preg_quote($this->prefix, '/')
-					. '\s*\(\s*([\'"])(.*?)\1\s*\)\s*'
-					. '((?:(?!' . preg_quote($this->suffix, '/') . ').)*)'
+					. '\s*\(\s*([\'"])(.*?)\1\s*\)'
+					. '(.*?)'
 					. preg_quote($this->suffix, '/')
 					. '/s';
 			} else {

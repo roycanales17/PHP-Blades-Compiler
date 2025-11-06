@@ -17,9 +17,9 @@
 			return "<?= json_encode($expression) ?>";
 		});
 
-		$blade->directive('yield', function ($expression) {
+		$blade->directive('yield', function ($expression) use($blade) {
 			$expression = trim($expression, '\'"');
-			return $GLOBALS['__BLADE_YIELD__'][$expression] ?? '';
+			return $blade->render($GLOBALS['__BLADE_YIELD__'][$expression] ?? '');
 		}, 1);
 
 		$blade->directive('include', function ($expression) use ($blade) {
