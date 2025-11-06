@@ -12,6 +12,10 @@
 			$this->directives = array_merge($this->directives, $directives);
 		}
 
+		public function registerAdvanceDirectives(array $directives): void {
+			$this->advanceDirectives = array_merge($this->directives, $directives);
+		}
+
 		public function registerSequences(array $sequences): void {
 			$this->sequence = array_merge($this->sequence, $sequences);
 		}

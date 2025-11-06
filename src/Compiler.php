@@ -14,9 +14,39 @@
 	 */
 	abstract class Compiler implements ViewsInterface
 	{
+		/**
+		 * The current content being compiled.
+		 *
+		 * @var string
+		 */
 		private string $content = '';
+
+		/**
+		 * List of wrapper definitions (prefix, suffix, callback, etc.).
+		 *
+		 * @var array
+		 */
 		protected array $wrapper = [];
+
+		/**
+		 * List of standard directives and their callbacks.
+		 *
+		 * @var array
+		 */
 		protected array $directives = [];
+
+		/**
+		 * List of advanced directives that execute after standard ones.
+		 *
+		 * @var array
+		 */
+		protected array $advanceDirectives = [];
+
+		/**
+		 * Sequence of directives with ordered execution.
+		 *
+		 * @var array
+		 */
 		protected array $sequence = [];
 
 		/**
@@ -44,11 +74,36 @@
 		}
 
 		/**
+		 * Registers an advanced directive that should be compiled after all standard directives.
+		 *
+		 * @param string $directive Name of the directive.
+		 * @param Closure $callback Directive callback function.
+		 * @param int $sequence Optional sequence index for ordered execution.
+		 * @return void
+		 * @throws CompilerException If the directive name is empty.
+		 */
+		public function advanceDirective(string $directive, Closure $callback, int $sequence = 0): void {
+			if (!$directive) {
+				throw new CompilerException("Directive is required");
+			}
+
+			if (!$sequence) {
+				$this->advanceDirectives[$directive] = $callback;
+			} else {
+				$this->sequence[$sequence] = [
+					'directive' => $directive,
+					'callback' => $callback,
+				];
+			}
+		}
+
+		/**
 		 * Registers a pair of wrapping tags and their callback.
 		 *
 		 * @param string $prefix Opening tag/pattern.
 		 * @param string $suffix Closing tag/pattern.
 		 * @param Closure $callback Callback to handle the wrap content.
+		 * @param bool $requireParams Whether the wrap requires parameters.
 		 * @return void
 		 * @throws CompilerException If prefix or suffix is missing.
 		 */
@@ -97,8 +152,9 @@
 		}
 
 		/**
-		 * This compiles via sequence for proper blades renders.
+		 * Compiles directives that are registered with sequence ordering.
 		 *
+		 * @return void
 		 * @throws CompilerException
 		 * @throws ReflectionException
 		 */
@@ -116,14 +172,33 @@
 		}
 
 		/**
+		 * Applies all registered advanced directives to the content.
+		 *
+		 * These are compiled after standard and sequence directives.
+		 *
+		 * @return void
+		 * @throws CompilerException|ReflectionException
+		 */
+		private function compileAdvanceStandards(): void
+		{
+			foreach ($this->advanceDirectives as $directive => $callback) {
+				$directiveHandler = new Directive($this->content);
+				$directiveHandler->directive($directive);
+				$directiveHandler->callback($callback);
+				$this->content = $directiveHandler->build();
+			}
+		}
+
+		/**
 		 * Compiles the given content by applying all wrappers and directives.
 		 *
 		 * @deprecated Do not use this function,
 		 * @param string $content Raw content to compile.
+		 * @param bool $basicOnly If true, skips compiling advanced directives.
 		 * @return string Compiled content.
 		 * @throws CompilerException|ReflectionException
 		 */
-		public function compile(string $content): string {
+		public function compile(string $content, bool $basicOnly = false): string {
 			$this->content = $content;
 
 			// Sorting
@@ -140,6 +215,9 @@
 				$this->compileWrapper();
 				$this->compileStandards();
 				$this->compileSequenceStandards();
+				if (!$basicOnly) {
+					$this->compileAdvanceStandards();
+				}
 			}
 
 			// Return the result
@@ -195,9 +273,18 @@
 		/**
 		 * Retrieves all registered sequence standard directives.
 		 *
-		 * @return array
+		 * @return array The list of directives that follow a specific execution order.
 		 */
 		public function getSequence(): array {
 			return $this->sequence;
+		}
+
+		/**
+		 * Retrieves all registered advanced directives.
+		 *
+		 * @return array The list of advanced directives with their callbacks.
+		 */
+		public function getAdvanceDirectives(): array {
+			return $this->advanceDirectives;
 		}
 	}

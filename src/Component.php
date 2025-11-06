@@ -86,9 +86,7 @@
 					}
 
 					// Capture and render the component output
-					ob_start();
-					Blade::load($file, array_merge($attributes, ['slot' => $inner]));
-					return ob_get_clean();
+					return Blade::load($file, array_merge($attributes, ['slot' => $inner]));
 				}, $content);
 			}
 

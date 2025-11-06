@@ -19,17 +19,10 @@
 
 		$blade->directive('yield', function ($expression) use($blade) {
 			$expression = trim($expression, '\'"');
-			$content = $blade->render($GLOBALS['__BLADE_YIELD__'][$expression] ?? '');
-			return <<<PHP
-            <?php /* open_tag marker */ ?>
-            $content
-            <?php /* close_tag marker */ ?>
-            PHP;
+			return $GLOBALS['__BLADE_YIELD__'][$expression] ?? '';
 		}, 1);
 
-		$blade->directive('include', function ($expression) use ($blade) {
-			static $recentPath = [];
-
+		$blade->advanceDirective('include', function ($expression) use ($blade) {
 			$orig_expression = $expression;
 			$expression = trim($expression);
 			if ($expression === '') return '';
@@ -56,21 +49,19 @@
 
 			foreach ($candidatePaths as $path) {
 				if (file_exists($path)) {
-					$recentPath[] = $path;
-					$content = file_get_contents($path);
-					$rendered = $blade->render($content, $path);
-					return <<<HTML
-                    <?php /* open_tag marker */ ?>
-                    $rendered
-                    <?php /* close_tag marker */ ?>
-                    HTML;
+					$compiled = Blade::load($path);
+					return Blade::parseWithMarker($compiled);
 				}
 			}
 
-			throw new Exception("Template path `$fullPath` is not exist. Original Path: $orig_expression");
+			if (defined('DEVELOPMENT') && DEVELOPMENT) {
+				return "Include path `$fullPath` is not exist. Original Path: $orig_expression";
+			}
+
+			return "";
 		});
 
-		$blade->directive('extends', function ($expression) use($blade) {
+		$blade->advanceDirective('extends', function ($expression) use($blade) {
 			$expression = trim($expression);
 			if ($expression === '') return '';
 
@@ -91,13 +82,16 @@
 				$candidatePaths[] = $fullPath . '.html';
 			}
 
-			foreach ($candidatePaths as $templatePath) {
-				if (file_exists($templatePath)) {
-					$templateContent = file_get_contents($templatePath);
-					return $blade->render($templateContent, $templatePath, true);
+			foreach ($candidatePaths as $path) {
+				if (file_exists($path)) {
+					return Blade::load($path);
 				}
 			}
 
-			throw new Exception("Template path `$fullPath` is not exist. Original Path: $orig_expression");
+			if (defined('DEVELOPMENT') && DEVELOPMENT) {
+				return "<!-- Template path `$templatePath` is not exist. Original Path: $orig_expression -->`";
+			}
+
+			return "";
 		}, 2);
 	});

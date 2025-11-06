@@ -21,12 +21,14 @@
 			return "<?php $expression ?>";
 		});
 
-		$blade->wrap('@section', '@endsection', function ($expression, $param) {
+		$blade->wrap('@section', '@endsection', function ($expression, $param) use($blade) {
 			if (!isset($GLOBALS['__BLADE_YIELD__'])) {
 				$GLOBALS['__BLADE_YIELD__'] = [];
 			}
 
-			$GLOBALS['__BLADE_YIELD__'][$param] =  $expression;
+			$content = Blade::compileAndCapture($expression);
+			$GLOBALS['__BLADE_YIELD__'][$param] = Blade::parseWithMarker($content);
+
 			return "";
 		}, true);
 	});
