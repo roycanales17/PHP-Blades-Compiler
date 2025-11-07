@@ -114,13 +114,12 @@
 		 * with trace details and throws it as a CompilerException.
 		 *
 		 * @param string $content The compiled PHP content to execute.
-		 * @param array $data Variables to extract into scope during execution.
 		 *
 		 * @return void
 		 *
 		 * @throws CompilerException If an error occurs during content execution.
 		 */
-		private static function capture(string $content, array $data = []): void
+		private static function capture(string $content): void
 		{
 			static $reported = false;
 			static $errorTraces = [];
@@ -233,17 +232,17 @@
 				$GLOBALS['__BLADES_VARIABLES__'][$key] = $value;
 			}
 
-			$capture = function($compiled, $extract) {
+			$capture = function($compiled) {
 				ob_start();
-				self::capture($compiled, $extract);
+				self::capture($compiled);
 				return ob_get_clean();
 			};
 
 			$validate = self::compile($content, true);
-			$captured = $capture($validate, $extract);
+			$captured = $capture($validate);
 			$compiled = self::compile($captured);
 
-			return $capture($compiled, $extract);
+			return $capture($compiled);
 		}
 
 		/**
@@ -271,7 +270,6 @@
 		 *
 		 * @param string $directive The directive name (without the @ symbol).
 		 * @param Closure $callback The callback defining the directive behavior.
-		 * @param int $sequence Optional sequence priority for execution.
 		 * @return void
 		 */
 		public function directive(string $directive, Closure $callback): void {
