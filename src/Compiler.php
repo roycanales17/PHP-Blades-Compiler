@@ -54,23 +54,15 @@
 		 *
 		 * @param string $directive
 		 * @param Closure $callback
-		 * @param int $sequence
 		 * @return void
 		 * @throws CompilerException If the directive name is empty.
 		 */
-		public function directive(string $directive, Closure $callback, int $sequence = 0): void {
+		public function directive(string $directive, Closure $callback): void {
 			if (!$directive) {
 				throw new CompilerException("Directive is required");
 			}
 
-			if (!$sequence) {
-				$this->directives[$directive] = $callback;
-			} else {
-				$this->sequence[$sequence] = [
-					'directive' => $directive,
-					'callback' => $callback,
-				];
-			}
+			$this->directives[$directive] = $callback;
 		}
 
 		/**
@@ -78,23 +70,15 @@
 		 *
 		 * @param string $directive Name of the directive.
 		 * @param Closure $callback Directive callback function.
-		 * @param int $sequence Optional sequence index for ordered execution.
 		 * @return void
 		 * @throws CompilerException If the directive name is empty.
 		 */
-		public function advanceDirective(string $directive, Closure $callback, int $sequence = 0): void {
+		public function advanceDirective(string $directive, Closure $callback): void {
 			if (!$directive) {
 				throw new CompilerException("Directive is required");
 			}
 
-			if (!$sequence) {
-				$this->advanceDirectives[$directive] = $callback;
-			} else {
-				$this->sequence[$sequence] = [
-					'directive' => $directive,
-					'callback' => $callback,
-				];
-			}
+			$this->advanceDirectives[$directive] = $callback;
 		}
 
 		/**
@@ -152,26 +136,6 @@
 		}
 
 		/**
-		 * Compiles directives that are registered with sequence ordering.
-		 *
-		 * @return void
-		 * @throws CompilerException
-		 * @throws ReflectionException
-		 */
-		private function compileSequenceStandards(): void
-		{
-			foreach ($this->sequence as $attr) {
-				$directive = $attr['directive'];
-				$callback = $attr['callback'];
-
-				$directiveHandler = new Directive($this->content);
-				$directiveHandler->directive($directive);
-				$directiveHandler->callback($callback);
-				$this->content = $directiveHandler->build();
-			}
-		}
-
-		/**
 		 * Applies all registered advanced directives to the content.
 		 *
 		 * These are compiled after standard and sequence directives.
@@ -214,7 +178,6 @@
 			} else {
 				$this->compileWrapper();
 				$this->compileStandards();
-				$this->compileSequenceStandards();
 				if (!$basicOnly) {
 					$this->compileAdvanceStandards();
 				}
@@ -268,15 +231,6 @@
 		 */
 		public function getDirectives(): array {
 			return $this->directives;
-		}
-
-		/**
-		 * Retrieves all registered sequence standard directives.
-		 *
-		 * @return array The list of directives that follow a specific execution order.
-		 */
-		public function getSequence(): array {
-			return $this->sequence;
 		}
 
 		/**

@@ -20,7 +20,7 @@
 		$blade->directive('yield', function ($expression) use($blade) {
 			$expression = trim($expression, '\'"');
 			return $GLOBALS['__BLADE_YIELD__'][$expression] ?? '';
-		}, 1);
+		});
 
 		$blade->advanceDirective('include', function ($expression) use ($blade) {
 			$orig_expression = $expression;
@@ -37,21 +37,13 @@
 			}
 
 			$fullPath = $basePath . $template;
-			$candidatePaths = [];
-
-			if (pathinfo($fullPath, PATHINFO_EXTENSION)) {
-				$candidatePaths[] = $fullPath;
-			} else {
-				$candidatePaths[] = $fullPath . '.blade.php';
-				$candidatePaths[] = $fullPath . '.php';
-				$candidatePaths[] = $fullPath . '.html';
+			if (!pathinfo($fullPath, PATHINFO_EXTENSION)) {
+				$fullPath = $fullPath . '.blade.php';
 			}
 
-			foreach ($candidatePaths as $path) {
-				if (file_exists($path)) {
-					$compiled = Blade::load($path);
-					return Blade::parseWithMarker($compiled);
-				}
+			if (file_exists($fullPath)) {
+				$compiled = Blade::load($fullPath);
+				return Blade::parseWithMarker($compiled);
 			}
 
 			if (defined('DEVELOPMENT') && DEVELOPMENT) {
@@ -71,21 +63,13 @@
 			$templatePath = preg_replace('/^["\']|["\']$/', '', $expression);
 			$basePath = $blade->getProjectRootPath('/views/');
 
-			$candidatePaths = [];
 			$fullPath = $basePath . $templatePath;
-
-			if (pathinfo($fullPath, PATHINFO_EXTENSION)) {
-				$candidatePaths[] = $fullPath;
-			} else {
-				$candidatePaths[] = $fullPath . '.blade.php';
-				$candidatePaths[] = $fullPath . '.php';
-				$candidatePaths[] = $fullPath . '.html';
+			if (!pathinfo($fullPath, PATHINFO_EXTENSION)) {
+				$fullPath = $fullPath . '.blade.php';
 			}
 
-			foreach ($candidatePaths as $path) {
-				if (file_exists($path)) {
-					return Blade::load($path);
-				}
+			if (file_exists($fullPath)) {
+				return Blade::load($fullPath);
 			}
 
 			if (defined('DEVELOPMENT') && DEVELOPMENT) {
@@ -93,5 +77,5 @@
 			}
 
 			return "";
-		}, 2);
+		});
 	});

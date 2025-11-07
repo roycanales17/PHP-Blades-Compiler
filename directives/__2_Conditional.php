@@ -64,4 +64,22 @@
 		$blade->directive('endunless', function () {
 			return "<?php endif; ?>";
 		});
+
+		// Add @error and @enderror
+		$blade->directive('error', function ($expression) {
+			return "<?php if(error($expression)): ?>";
+		});
+
+		$blade->directive('enderror', function () {
+			return "<?php endif; ?>";
+		});
+
+		// Add @success and @endsuccess
+		$blade->directive('success', function ($expression) {
+			return "<?php if(success($expression)): ?>";
+		});
+
+		$blade->directive('endsuccess', function () {
+			return "<?php endif; ?>";
+		});
 	});

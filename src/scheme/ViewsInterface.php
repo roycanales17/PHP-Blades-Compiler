@@ -6,7 +6,7 @@
 
 	interface ViewsInterface
 	{
-		public function directive(string $directive, Closure $callback, int $sequence = 0): void;
+		public function directive(string $directive, Closure $callback): void;
 
 		public function wrap(string $prefix, string $suffix, Closure $callback, bool $requireParams = false): void;
 

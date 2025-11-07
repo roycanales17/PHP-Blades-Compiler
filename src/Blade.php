@@ -101,7 +101,6 @@
 				$buffer->registerWrap($compiler->getWrapper());
 				$buffer->registerDirectives($compiler->getDirectives());
 				$buffer->registerAdvanceDirectives($compiler->getAdvanceDirectives());
-				$buffer->registerSequences($compiler->getSequence());
 			}
 
 			return $buffer->compile($content, $basicOnly);
@@ -130,14 +129,22 @@
 			$realPath = $tempFile;
 
 			try {
+				if (!isset($GLOBALS['__BLADES_VARIABLES__'])) {
+					$GLOBALS['__BLADES_VARIABLES__'] = [];
+				}
+
+				foreach ($data as $key => $value) {
+					$GLOBALS['__BLADES_VARIABLES__'][$key] = $value;
+				}
+
 				$__resolvedPath = $tempFile;
 				file_put_contents($tempFile, $content);
 
-				(static function () use ($tempFile, $data, &$__resolvedPath) {
+				(static function () use ($tempFile, &$__resolvedPath) {
 					if (self::$tracePaths) {
 						$__resolvedPath = end(self::$tracePaths);
 					}
-					extract($data, EXTR_SKIP);
+					extract($GLOBALS['__BLADES_VARIABLES__'], EXTR_SKIP);
 					include $tempFile;
 				})();
 			} catch (Exception|Error $e) {
@@ -267,8 +274,8 @@
 		 * @param int $sequence Optional sequence priority for execution.
 		 * @return void
 		 */
-		public function directive(string $directive, Closure $callback, int $sequence = 0): void {
-			$this->compiler->directive($directive, $callback, $sequence);
+		public function directive(string $directive, Closure $callback): void {
+			$this->compiler->directive($directive, $callback);
 		}
 
 		/**
@@ -276,11 +283,10 @@
 		 *
 		 * @param string $directive The directive name.
 		 * @param Closure $callback The directive behavior handler.
-		 * @param int $sequence Optional sequence number for ordering.
 		 * @return void
 		 */
-		public function advanceDirective(string $directive, Closure $callback, int $sequence = 0): void {
-			$this->compiler->advanceDirective($directive, $callback, $sequence);
+		public function advanceDirective(string $directive, Closure $callback): void {
+			$this->compiler->advanceDirective($directive, $callback);
 		}
 
 		/**
