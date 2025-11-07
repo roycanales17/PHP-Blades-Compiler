@@ -129,14 +129,6 @@
 			$realPath = $tempFile;
 
 			try {
-				if (!isset($GLOBALS['__BLADES_VARIABLES__'])) {
-					$GLOBALS['__BLADES_VARIABLES__'] = [];
-				}
-
-				foreach ($data as $key => $value) {
-					$GLOBALS['__BLADES_VARIABLES__'][$key] = $value;
-				}
-
 				$__resolvedPath = $tempFile;
 				file_put_contents($tempFile, $content);
 
@@ -233,6 +225,14 @@
 		 * @throws CompilerException|ReflectionException
 		 */
 		public static function compileAndCapture(string $content, array $extract = []): string {
+			if (!isset($GLOBALS['__BLADES_VARIABLES__'])) {
+				$GLOBALS['__BLADES_VARIABLES__'] = [];
+			}
+
+			foreach ($extract as $key => $value) {
+				$GLOBALS['__BLADES_VARIABLES__'][$key] = $value;
+			}
+
 			$capture = function($compiled, $extract) {
 				ob_start();
 				self::capture($compiled, $extract);
