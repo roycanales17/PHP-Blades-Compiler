@@ -9,7 +9,7 @@
 	 * Class Component
 	 *
 	 * A lightweight Blade-like component compiler that processes custom <x-*> tags in HTML templates.
-	 * It allows developers to define reusable view components similar to Laravel Blade components.
+	 * It allows developers to define reusable view components.
 	 *
 	 * Features:
 	 * - Supports both standard (<x-card>...</x-card>) and self-closing (<x-icon ... />) components

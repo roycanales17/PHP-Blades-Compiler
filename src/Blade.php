@@ -13,7 +13,7 @@
 	 * The Blade class provides a lightweight template engine with support
 	 * for registering custom directives and compiling template content.
 	 *
-	 * It serves as a simplified reimplementation of Laravel's Blade engine,
+	 * It serves as a simplified reimplementation of Framework Blade engine,
 	 * enabling dynamic PHP content compilation, safe capturing, and directive extensions.
 	 */
 	final class Blade
