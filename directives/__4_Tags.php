@@ -23,9 +23,10 @@
 		});
 
 		$blade->wrap('@error', '@enderror', function ($expression, $key) {
-			if (class_exists(Session::class)) {
-				$key = str_replace(['"', "'"], '', $key);
-				$message = Session::flash($key);
+			$key = str_replace(['"', "'"], '', $key);
+
+			if (class_exists(Session::class) && function_exists('error')) {
+				$message = error($key);
 
 				// Insert again
 				Session::flash("error:$key", $message);
