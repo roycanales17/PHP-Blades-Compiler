@@ -24,6 +24,7 @@
 
 		$blade->wrap('@error', '@enderror', function ($expression, $key) {
 			if (class_exists(Session::class)) {
+				$key = str_replace(['"', "'"], '', $key);
 				$message = Session::flash($key);
 
 				// Insert again
