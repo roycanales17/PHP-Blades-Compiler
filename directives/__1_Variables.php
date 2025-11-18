@@ -5,6 +5,10 @@
 
 	Blade::build(new Variables)->register(function (Blade $blade)
 	{
+		$blade->directive('method', function ($expression) {
+			return "<input type='hidden' name='__request_method__' value=$expression />";
+		});
+
 		$blade->directive('post', function ($expression) {
 			$trimmed = trim($expression);
 
