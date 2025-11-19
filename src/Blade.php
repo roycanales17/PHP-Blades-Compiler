@@ -124,19 +124,40 @@
 			static $reported = false;
 			static $errorTraces = [];
 
-			$tempFile = tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
-			$realPath = $tempFile;
+			$__tempFile = tempnam(sys_get_temp_dir(), 'tpl_') . '.php';
+			$realPath = $__tempFile;
 
 			try {
-				$__resolvedPath = $tempFile;
-				file_put_contents($tempFile, $content);
+				$__resolvedPath = $__tempFile;
+				file_put_contents($__tempFile, $content);
 
-				(static function () use ($tempFile, &$__resolvedPath) {
+				(static function () use ($__tempFile, &$__resolvedPath) {
 					if (self::$tracePaths) {
 						$__resolvedPath = end(self::$tracePaths);
 					}
 					extract($GLOBALS['__BLADES_VARIABLES__'], EXTR_SKIP);
-					include $tempFile;
+					if (!isset($GLOBALS['__BLADES_VARIABLES_2__'])) {
+						$GLOBALS['__BLADES_VARIABLES_2__'] = [];
+					}
+
+					$__beforeVars = get_defined_vars();
+					foreach ($__beforeVars as $__varName => $__varValue) {
+						if (str_starts_with($__varName, "__")) {
+							continue;
+						}
+
+						$GLOBALS['__BLADES_VARIABLES_2__'][$__varName] = $__varValue;
+					}
+
+					include $__tempFile;
+					$__afterVars = get_defined_vars();
+					foreach ($__afterVars as $__varName => $__varValue) {
+						if (str_starts_with($__varName, "__")) {
+							continue;
+						}
+
+						$GLOBALS['__BLADES_VARIABLES_2__'][$__varName] = $__varValue;
+					}
 				})();
 			} catch (Exception|Error $e) {
 				if (empty($errorTraces)) {
@@ -161,7 +182,7 @@
 					];
 				}
 			} finally {
-				unlink($tempFile);
+				unlink($__tempFile);
 			}
 
 			if (!empty($errorTraces) && !$reported) {
@@ -169,7 +190,7 @@
 				$errorLogsHtml = '';
 
 				foreach ($errorTrace['traces'] as $trace) {
-					if (($trace['file'] ?? '') == $tempFile) {
+					if (($trace['file'] ?? '') == $__tempFile) {
 						$errorTrace['line'] = $trace['line'];
 						break;
 					}

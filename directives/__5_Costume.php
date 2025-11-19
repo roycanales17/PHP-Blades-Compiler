@@ -44,7 +44,9 @@
 
 					$replacements = [];
 					foreach ($variables as $var) {
-						if (isset($GLOBALS['__BLADES_VARIABLES__'][$var])) {
+						if (isset($GLOBALS['__BLADES_VARIABLES_2__'][$var])) {
+							$replacements['$'.$var] = var_export($GLOBALS['__BLADES_VARIABLES_2__'][$var], true);
+						} elseif (isset($GLOBALS['__BLADES_VARIABLES__'][$var])) {
 							$replacements['$'.$var] = var_export($GLOBALS['__BLADES_VARIABLES__'][$var], true);
 						} else {
 							$replacements['$'.$var] = 'null';
@@ -53,10 +55,16 @@
 
 					$param2Eval = strtr($param2, $replacements);
 					$param2Array = eval("return $param2Eval;");
+
 				} else {
 					if (str_starts_with($param2, '$')) {
 						$varName = substr($param2, 1);
-						$param2Array = $GLOBALS['__BLADES_VARIABLES__'][$varName] ?? [];
+
+						if (isset($GLOBALS['__BLADES_VARIABLES_2__'][$varName])) {
+							$param2Array = $GLOBALS['__BLADES_VARIABLES_2__'][$varName];
+						} elseif (isset($GLOBALS['__BLADES_VARIABLES__'][$varName])) {
+							$param2Array = $GLOBALS['__BLADES_VARIABLES__'][$varName];
+						}
 					} else {
 						$param2Array = ['value' => trim($param2, "'\"")];
 					}
