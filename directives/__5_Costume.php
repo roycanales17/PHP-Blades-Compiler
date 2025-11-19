@@ -27,9 +27,43 @@
 			$expression = trim($expression);
 			if ($expression === '') return '';
 
-			$expression = str_replace('.', '/', $expression);
-			$template = preg_replace('/^["\']|["\']$/', '', trim($expression, ' '));
+			if (strpos($expression, ',') !== false) {
+				preg_match("/^'([^']+)'\s*,\s*(.+)$/s", $expression, $matches);
+				$param1 = $matches[1];
+				$param2 = trim($matches[2]);
+			} else {
+				$param1 = trim($expression, "'\"");
+				$param2 = null;
+			}
 
+			$param2Array = [];
+			if ($param2 !== null) {
+				if (str_starts_with($param2, '[') && str_ends_with($param2, ']')) {
+					preg_match_all('/\$(\w+)/', $param2, $varMatches);
+					$variables = $varMatches[1] ?? [];
+
+					$replacements = [];
+					foreach ($variables as $var) {
+						if (isset($GLOBALS['__BLADES_VARIABLES__'][$var])) {
+							$replacements['$'.$var] = var_export($GLOBALS['__BLADES_VARIABLES__'][$var], true);
+						} else {
+							$replacements['$'.$var] = 'null';
+						}
+					}
+
+					$param2Eval = strtr($param2, $replacements);
+					$param2Array = eval("return $param2Eval;");
+				} else {
+					if (str_starts_with($param2, '$')) {
+						$varName = substr($param2, 1);
+						$param2Array = $GLOBALS['__BLADES_VARIABLES__'][$varName] ?? [];
+					} else {
+						$param2Array = ['value' => trim($param2, "'\"")];
+					}
+				}
+			}
+
+			$template = str_replace('.', '/', $param1);
 			if (function_exists('base_path')) {
 				$basePath = base_path('/views/');
 			} else {
@@ -38,16 +72,16 @@
 
 			$fullPath = $basePath . $template;
 			if (!pathinfo($fullPath, PATHINFO_EXTENSION)) {
-				$fullPath = $fullPath . '.blade.php';
+				$fullPath .= '.blade.php';
 			}
 
 			if (file_exists($fullPath)) {
-				$compiled = Blade::load($fullPath);
+				$compiled = Blade::load($fullPath, $param2Array);
 				return Blade::parseWithMarker($compiled);
 			}
 
 			if (defined('DEVELOPMENT') && DEVELOPMENT) {
-				return "Include path `$fullPath` is not exist. Original Path: $orig_expression";
+				return "Include path `$fullPath` does not exist. Original Path: $orig_expression";
 			}
 
 			return "";
