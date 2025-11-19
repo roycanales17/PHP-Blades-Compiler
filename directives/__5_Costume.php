@@ -53,6 +53,7 @@
 						}
 					}
 
+					// Todo: check if this is safe to use eval
 					$param2Eval = strtr($param2, $replacements);
 					$param2Array = eval("return $param2Eval;");
 
