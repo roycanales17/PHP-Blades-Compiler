@@ -53,11 +53,15 @@
 						}
 					}
 
-					// Todo: check if this is safe to use eval
 					$param2Eval = strtr($param2, $replacements);
-					$param2Array = eval("return $param2Eval;");
+					$tempFile = sys_get_temp_dir() . '/blade_param_' . uniqid() . '.php';
+					file_put_contents($tempFile, "<?php\nreturn $param2Eval;\n");
+
+					$param2Array = include $tempFile;
+					unlink($tempFile);
 
 				} else {
+					// Single variable or static string
 					if (str_starts_with($param2, '$')) {
 						$varName = substr($param2, 1);
 
