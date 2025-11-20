@@ -4,7 +4,7 @@
 
 	use App\View\Compilers\Compiler;
 
-	final class Costume extends Compiler
+	final class Custom extends Compiler
 	{
 		/**
 		 * Override this method to customize how the compiler processes content.

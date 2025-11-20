@@ -1,9 +1,9 @@
 <?php
 
 	use App\View\Compilers\Blade;
-	use App\View\Compilers\templates\Costume;
+	use App\View\Compilers\templates\Custom;
 
-	Blade::build(new Costume)->register(function (Blade $blade)
+	Blade::build(new Custom)->register(function (Blade $blade)
 	{
 		$blade->directive('csrf', function () {
 			$token = '';
