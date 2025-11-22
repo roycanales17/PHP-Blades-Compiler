@@ -33,6 +33,14 @@
 			return "<?php endforeach; ?>";
 		});
 
+		$blade->directive('forelse', function ($expression) {
+			return "<?php foreach($expression): ?>";
+		});
+
+		$blade->directive('endforelse', function () {
+			return "<?php endforeach; ?>";
+		});
+
 		// While loop
 		$blade->directive('while', function ($expression) {
 			return "<?php while($expression): ?>";
