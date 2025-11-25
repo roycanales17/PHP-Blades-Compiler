@@ -163,6 +163,10 @@
 		 * @throws CompilerException|ReflectionException
 		 */
 		public function compile(string $content, bool $basicOnly = false): string {
+			if (isset($GLOBALS['__BLADES_ERROR__'])) {
+				return $content;
+			}
+
 			$this->content = $content;
 
 			// Sorting

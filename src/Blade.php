@@ -13,7 +13,7 @@
 	 * The Blade class provides a lightweight template engine with support
 	 * for registering custom directives and compiling template content.
 	 *
-	 * It serves as a simplified reimplementation of Framework Blade engine,
+	 * It serves as a simplified reimplementation of the Framework Blade engine,
 	 * enabling dynamic PHP content compilation, safe capturing, and directive extensions.
 	 */
 	final class Blade
@@ -55,7 +55,7 @@
 		public static function load(string $path, array $extract = []): string {
 			/**
 			 * Steps:
-			 * 1. [load] require path = Load the content from the given path.
+			 * 1. [load] require a path = Load the content from the given path.
 			 * 2. [compile] compile content = Apply all registered regex patterns and directives.
 			 * 3. [capture] execute compiled content = Execute the compiled content and handle PHP execution safely.
 			 */
@@ -121,6 +121,11 @@
 		 */
 		private static function capture(string $content): void
 		{
+			if (isset($GLOBALS['__BLADES_ERROR__'])) {
+				echo($GLOBALS['__BLADES_ERROR__']);
+				return;
+			}
+
 			static $reported = false;
 			static $errorTraces = [];
 
@@ -253,17 +258,21 @@
 				$GLOBALS['__BLADES_VARIABLES__'][$key] = $value;
 			}
 
-			$capture = function($compiled) {
-				ob_start();
-				self::capture($compiled);
-				return ob_get_clean();
-			};
+			try {
+				$capture = function($compiled) {
+					ob_start();
+					self::capture($compiled);
+					return ob_get_clean();
+				};
 
-			$validate = self::compile($content, true);
-			$captured = $capture($validate);
-			$compiled = self::compile($captured);
-
-			return $capture($compiled);
+				$validate = self::compile($content, true);
+				$captured = $capture($validate);
+				$compiled = self::compile($captured);
+				return $capture($compiled);
+			} catch (CompilerException $e) {
+				$GLOBALS['__BLADES_ERROR__'] = $e->getMessage();
+				throw new Exception($e->getMessage(), $e->getCode(), $e);
+			}
 		}
 
 		/**
